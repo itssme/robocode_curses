@@ -10,8 +10,8 @@ include_directories(robocode include/)
 include_directories(${PROTOBUF_INCLUDE_DIRS})
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
-protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS src/proto/message.proto)
+protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS src/proto/messages.proto)
 
-add_executable(robocode src/main.cpp src/proto/message.proto ${PROTO_SRCS} ${PROTO_HDRS} src/server.cpp include/server.h src/connection.cpp include/connection.h)
+add_executable(robocode src/main.cpp src/proto/messages.proto ${PROTO_SRCS} ${PROTO_HDRS} src/communication/server.cpp include/server.h src/communication/connection.cpp include/connection.h)
 
 target_link_libraries(robocode ${PROTOBUF_LIBRARY})

@@ -1,0 +1,17 @@
+syntax = "proto2";
+package shared;
+
+message Position {
+  required int32 x = 1;
+  required int32 y = 2;
+}
+
+message GunPosition {
+  required int32 degrees = 1;
+}
+
+message Update {
+  required Position pos = 1;
+  optional GunPosition gun_pos = 2;
+  optional bool shot = 3;
+}s

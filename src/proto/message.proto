@@ -1,7 +1,0 @@
-syntax = "proto2";
-package shared;
-
-message Position {
-  required int32 x = 1;
-  required int32 y = 2;
-}

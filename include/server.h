@@ -10,6 +10,8 @@
 
 #include <connection.h>
 #include <vector>
+#include <future>
+#include "message.pb.h"
 
 class Server {
 private:
@@ -17,6 +19,7 @@ private:
 public:
     void get_connnections();
     void stop_getting_connections();
+    std::future<shared::Position> get_update(int id);
 };
 
 #endif //ROBOCODE_SERVER_H
