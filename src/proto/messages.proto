@@ -14,4 +14,4 @@ message Update {
   required Position pos = 1;
   optional GunPosition gun_pos = 2;
   optional bool shot = 3;
-}s
+}

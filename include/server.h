@@ -11,7 +11,7 @@
 #include <connection.h>
 #include <vector>
 #include <future>
-#include "message.pb.h"
+#include "messages.pb.h"
 
 class Server {
 private:
