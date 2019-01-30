@@ -35,10 +35,16 @@ public:
         waddstr(this->window, title.c_str());
     }
     void select() {
-
+        werase(this->window);
+        wattroff(this->window, A_NORMAL);
+        wattron(this->window, A_REVERSE);
+        waddstr(this->window, this->title.c_str());
     }
     void de_select() {
-
+        werase(this->window);
+        wattroff(this->window, A_REVERSE);
+        wattron(this->window, A_NORMAL);
+        waddstr(this->window, this->title.c_str());
     }
     void refresh() {
         touchwin(this->window);
@@ -80,30 +86,37 @@ public:
             wrefresh(this->window);
         }
         mvwaddstr(this->window, 0, 1, title.c_str());
+        this->title = title;
 
         for (int i = 0; i < option_names.size(); ++i) {
             this->options.emplace_back(Option(this->window, option_names.at(i),
                                               static_cast<int>(option_names.at(i).size())+1,
-                                              static_cast<int>(window->_maxy / 2 - option_names.size() / 2 + i + 1),
+                                              static_cast<int>(window->_maxy / 2 - option_names.size() / 2 + i),
                                               static_cast<int>(window->_maxx / 2 - option_names.at(i).length() / 2)));
         }
+
+        this->options.at(0).select();
         this->at_option = 0;
     }
 
     void up() {
+        this->options.at(at_option).de_select();
         if (at_option == 0) {
             at_option = static_cast<int>(options.size() - 1);
         } else {
             at_option--;
         }
+        this->options.at(at_option).select();
     }
 
     void down() {
+        this->options.at(at_option).de_select();
         if (at_option == options.size() - 1) {
             at_option = 0;
         } else {
             at_option++;
         }
+        this->options.at(at_option).select();
     }
 
     int evaluate() {
