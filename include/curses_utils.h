@@ -50,13 +50,10 @@ class Menu {
 private:
     WINDOW* parent_window;
     std::string title;
-
     int at_option;
-
-public:
     WINDOW* window;
     std::vector<Option> options{};
-
+public:
     Menu(WINDOW* parent_window, const std::vector<std::string> &option_names, const std::string &title) {
         this->parent_window = parent_window;
 
@@ -72,8 +69,15 @@ public:
             wrefresh(this->window);
             refresh();
         } else {
-            this->window = subwin(parent_window, parent_window->_maxy / 4, parent_window->_maxx / 4,
-                                  parent_window->_maxx / 4, parent_window->_maxy / 4);
+            // if the parent window is too small this will cause a segfault
+            this->window = derwin(parent_window,
+                                  parent_window->_maxy / 3,
+                                  parent_window->_maxx / 3,
+                                  (parent_window->_maxy - parent_window->_maxy / 3) / 2,
+                                  (parent_window->_maxx - parent_window->_maxx / 3) / 2);
+            box(this->window, 0 , 0);
+            touchwin(this->window);
+            wrefresh(this->window);
         }
         mvwaddstr(this->window, 0, 1, title.c_str());
 
@@ -107,6 +111,9 @@ public:
     }
 
     void refresh_all() {
+        if (is_subwin(this->window)) {
+            touchwin(this->window);
+        }
         wrefresh(this->window);
         for (auto op: options) {
             op.refresh();

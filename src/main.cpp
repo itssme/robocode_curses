@@ -7,6 +7,8 @@
 
 using namespace std;
 
+WINDOW* main_window;
+
 void server() {
     cout << "SERVER" << endl;
 }
@@ -34,12 +36,15 @@ int main(int argc, char* argv[]) {
     curs_set(0);
     refresh();
 
-    {
+    // windows where the game will be played
+    main_window = create_newwin(LINES, COLS, 0, 0);
+
+    { // MAIN MENU
         vector<string> tmp;
         tmp.emplace_back("Connect to a game");
         tmp.emplace_back("Host a new game");
         tmp.emplace_back("Exit game");
-        Menu main_menu = Menu(nullptr, tmp, " Robocode Menu ");
+        Menu main_menu = Menu(main_window, tmp, " Robocode Menu ");
         main_menu.refresh_all();
         int ch;
         while ((ch = getch()) != 10) {
