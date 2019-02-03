@@ -2,12 +2,18 @@
 #include <fstream>
 #include <string>
 #include <ncurses.h>
-#include <curses_utils.h>
 #include <messages.pb.h>
+#include <thread>
+#include <chrono>
+#include <random>
+
+#include "curses_utils.h"
+#include "curses_drawable_objects.h"
 
 using namespace std;
 
 WINDOW* main_window;
+bool running{true};
 
 void server() {
     cout << "SERVER" << endl;
@@ -15,6 +21,40 @@ void server() {
 
 void client() {
     cout << "CLIENT" << endl;
+}
+
+void background_robot() {
+    this_thread::sleep_for(std::chrono::seconds(1));
+    float speed_x = 1;
+    float speed_y = 1;
+    drawable::Robot robot = drawable::Robot(main_window, 6, 6);
+    random_device rd;
+    mt19937 gen{rd()};
+    uniform_real_distribution<float> dis_x{2, (float) COLS-(robot.size_x+2)};
+    uniform_real_distribution<float> dis_y{2, (float) LINES-(robot.size_y+2)};
+    float pos_x = dis_x(gen);
+    float pos_y = dis_y(gen);
+
+    while (running) {
+        pos_y += speed_y;
+        pos_x += speed_x;
+        robot.move(pos_y, pos_x);
+        robot.refresh();
+
+        if (pos_y >= LINES-(robot.size_y+1)) {
+            speed_y = -1;
+        } else if (pos_y <= 2) {
+            speed_y = 1;
+        }
+
+        if (pos_x >= COLS-(robot.size_x+1)) {
+            speed_x = -1;
+        } else if (pos_x <= 2) {
+            speed_x = 1;
+        }
+
+        this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
 }
 
 int main(int argc, char* argv[]) {
@@ -38,6 +78,7 @@ int main(int argc, char* argv[]) {
 
     // window where the game will be played
     main_window = create_newwin(LINES, COLS, 0, 0);
+    thread t = thread(background_robot);
 
     bool configured = false;
     while (! configured) {
@@ -118,6 +159,8 @@ int main(int argc, char* argv[]) {
         }
     }
 
+    running = false;
+    t.join();
     endwin();
 
     return 0;
