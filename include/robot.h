@@ -23,6 +23,7 @@ public:
     drawable::Robot drawable_robot;
     void draw(WINDOW* window);
     bool check_collision(Robot robot); // check if this robot has collided with the one provided
+    Robot(drawable::Robot drawable_robot);
 };
 
 #endif //ROBOCODE_ROBOT_H

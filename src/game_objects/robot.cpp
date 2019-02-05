@@ -15,3 +15,7 @@ void Robot::draw(WINDOW *window) {
 bool Robot::check_collision(Robot robot) {
     return false;
 }
+
+Robot::Robot(drawable::Robot drawable_robot) : drawable_robot(drawable_robot) {
+
+}

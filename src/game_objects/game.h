@@ -22,6 +22,8 @@ private:
 public:
     Game(WINDOW* window);
     void game_loop(bool& running);
+    void tick_all();
+    void draw_all();
 
 };
 

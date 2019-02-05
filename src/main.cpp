@@ -30,30 +30,33 @@ void background_robot() {
     drawable::Robot robot = drawable::Robot(main_window, 6, 6);
     random_device rd;
     mt19937 gen{rd()};
-    uniform_real_distribution<float> dis_x{2, (float) COLS-(robot.size_x+2)};
-    uniform_real_distribution<float> dis_y{2, (float) LINES-(robot.size_y+2)};
+    uniform_real_distribution<float> dis_x{2, (float) COLS-(robot.height+2)};
+    uniform_real_distribution<float> dis_y{2, (float) LINES-(robot.width+2)};
     float pos_x = dis_x(gen);
     float pos_y = dis_y(gen);
+    float rotation = 0;
 
     while (running) {
         pos_y += speed_y;
         pos_x += speed_x;
         robot.move(pos_y, pos_x);
-        robot.refresh();
+        robot.draw();
+        robot.set_gun_rotation(rotation);
+        rotation+=5;
 
-        if (pos_y >= LINES-(robot.size_y+1)) {
+        if (pos_y >= LINES-(robot.height+1)) {
             speed_y = -1;
         } else if (pos_y <= 2) {
             speed_y = 1;
         }
 
-        if (pos_x >= COLS-(robot.size_x+1)) {
+        if (pos_x >= COLS-(robot.width+1)) {
             speed_x = -1;
         } else if (pos_x <= 2) {
             speed_x = 1;
         }
 
-        this_thread::sleep_for(std::chrono::milliseconds(100));
+        this_thread::sleep_for(std::chrono::milliseconds(50));
     }
 }
 
