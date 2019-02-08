@@ -14,6 +14,7 @@ using namespace std;
 
 WINDOW* main_window;
 bool running{true};
+mutex draw_mutex;
 
 void server() {
     cout << "SERVER" << endl;
@@ -40,9 +41,13 @@ void background_robot() {
         pos_y += speed_y;
         pos_x += speed_x;
         robot.move(pos_y, pos_x);
+
+        draw_mutex.lock();
         robot.draw();
+        draw_mutex.unlock();
+
         robot.set_gun_rotation(rotation);
-        rotation+=5;
+        rotation+=10;
 
         if (pos_y >= LINES-(robot.height+1)) {
             speed_y = -1;
@@ -56,7 +61,7 @@ void background_robot() {
             speed_x = 1;
         }
 
-        this_thread::sleep_for(std::chrono::milliseconds(50));
+        this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 }
 
@@ -102,11 +107,16 @@ int main(int argc, char* argv[]) {
                     main_menu.up();
                 }
 
+                draw_mutex.lock();
                 main_menu.refresh_all();
+                draw_mutex.unlock();
             }
             main_choice = main_menu.evaluate_choice();
+
+            draw_mutex.lock();
             main_menu.erase();
             main_menu.refresh_all();
+            draw_mutex.unlock();
         }
 
         {
@@ -126,13 +136,18 @@ int main(int argc, char* argv[]) {
                         connect_menu.pass_input(ch);
                     }
 
+                    draw_mutex.lock();
                     connect_menu.refresh_all();
+                    draw_mutex.unlock();
                 }
                 if (connect_menu.evaluate_choice() != 0) {
                     configured = true;
                 }
+
+                draw_mutex.lock();
                 connect_menu.erase();
                 connect_menu.refresh_all();
+                draw_mutex.unlock();
             } else if (main_choice == 1) {
                 vector<string> tmp;
                 tmp.emplace_back("Back ..");
@@ -149,7 +164,9 @@ int main(int argc, char* argv[]) {
                         connect_menu.pass_input(ch);
                     }
 
+                    draw_mutex.lock();
                     connect_menu.refresh_all();
+                    draw_mutex.unlock();
                 }
                 if (connect_menu.evaluate_choice() != 0) {
                     configured = true;

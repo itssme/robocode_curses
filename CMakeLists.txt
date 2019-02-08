@@ -13,6 +13,6 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS src/proto/messages.proto)
 
-add_executable(robocode src/main.cpp src/proto/messages.proto ${PROTO_SRCS} ${PROTO_HDRS} src/communication/server.cpp include/server.h src/communication/connection.cpp include/connection.h include/robot.h include/curses_utils.h src/game_objects/robot.cpp src/game_objects/game.cpp src/game_objects/game.h src/curses_drawable_objects.cpp include/curses_drawable_objects.h)
+add_executable(robocode src/main.cpp src/proto/messages.proto ${PROTO_SRCS} ${PROTO_HDRS} src/communication/server.cpp include/server.h src/communication/connection.cpp include/connection.h include/robot.h include/curses_utils.h src/game_objects/robot.cpp src/game_objects/game.cpp src/game_objects/game.h src/curses_drawable_objects.cpp include/curses_drawable_objects.h src/game_objects/bullet.cpp src/game_objects/bullet.cpp src/game_objects/bullet.h)
 
 target_link_libraries(robocode ${PROTOBUF_LIBRARY})

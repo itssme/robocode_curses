@@ -22,6 +22,7 @@ public:
     float energy;
     drawable::Robot drawable_robot;
     void draw(WINDOW* window);
+    void shoot();
     bool check_collision(Robot robot); // check if this robot has collided with the one provided
     Robot(drawable::Robot drawable_robot);
 };
