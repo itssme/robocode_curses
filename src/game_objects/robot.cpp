@@ -8,7 +8,11 @@
 
 #include "robot.h"
 
-void Robot::draw(WINDOW *window) {
+Robot::Robot(WINDOW* parent_window, drawable::Robot drawable_robot) : drawable_robot(drawable_robot) {
+
+}
+
+void Robot::draw() {
 
 }
 
@@ -16,6 +20,10 @@ bool Robot::check_collision(Robot robot) {
     return false;
 }
 
-Robot::Robot(drawable::Robot drawable_robot) : drawable_robot(drawable_robot) {
+bool Robot::check_collision(Bullet bullet) {
+    return false;
+}
+
+Bullet Robot::shoot() {
 
 }

@@ -9,10 +9,10 @@
 #ifndef ROBOCODE_ROBOT_H
 #define ROBOCODE_ROBOT_H
 
-#include <ncurses.h>
 #include "curses_drawable_objects.h"
+#include "bullet.h"
 
-struct Robot {
+class Robot {
 public:
     float pos_x;
     float pos_y;
@@ -21,10 +21,12 @@ public:
     int gun_degree;
     float energy;
     drawable::Robot drawable_robot;
-    void draw(WINDOW* window);
-    void shoot();
+    void draw();
+    Bullet shoot();
+    void tick();
     bool check_collision(Robot robot); // check if this robot has collided with the one provided
-    Robot(drawable::Robot drawable_robot);
+    bool check_collision(Bullet bullet);
+    Robot(WINDOW* parent_window, drawable::Robot drawable_robot);
 };
 
 #endif //ROBOCODE_ROBOT_H

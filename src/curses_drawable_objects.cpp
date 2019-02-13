@@ -10,7 +10,12 @@
 #include <cmath>
 #include <string>
 
-drawable::Robot::Robot(WINDOW *parent_window, int begin_y, int begin_x, int height, int width) {
+void drawable::DrawableObject::move(int pos_y, int pos_x) {
+    this->pos_y = pos_y;
+    this->pos_x = pos_x;
+}
+
+drawable::Robot::Robot(WINDOW *parent_window, int begin_y, int begin_x, int height, int width) : DrawableObject() {
     this->pos_x = begin_x;
     this->pos_y = begin_y;
     this->width = width;
@@ -93,9 +98,4 @@ void drawable::Bullet::draw(bool remove_old) {
 void drawable::Bullet::refresh() {
     touchwin(this->window);
     wrefresh(this->window);
-}
-
-void drawable::DrawableObject::move(int pos_y, int pos_x) {
-    this->pos_y = pos_y;
-    this->pos_x = pos_x;
 }

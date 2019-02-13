@@ -91,12 +91,12 @@ int main(int argc, char* argv[]) {
     bool configured = false;
     while (! configured) {
         int main_choice;
-        vector<string> main_menu_config;
-        main_menu_config.emplace_back("Connect to a game");
-        main_menu_config.emplace_back("Host a new game");
-        main_menu_config.emplace_back("Exit game");
 
         { // MAIN MENU
+            vector<string> main_menu_config;
+            main_menu_config.emplace_back("Connect to a game");
+            main_menu_config.emplace_back("Host a new game");
+            main_menu_config.emplace_back("Exit game");
             Menu main_menu = Menu(main_window, main_menu_config, 0, " Robocode Menu ");
             main_menu.refresh_all();
             int ch;
@@ -151,8 +151,8 @@ int main(int argc, char* argv[]) {
             } else if (main_choice == 1) {
                 vector<string> tmp;
                 tmp.emplace_back("Back ..");
-                tmp.emplace_back("TEMP");
-                Menu connect_menu = Menu(main_window, tmp, 1, " Host Menu ");
+                tmp.emplace_back("Start getting connections");
+                Menu connect_menu = Menu(main_window, tmp, 0, " Host Menu ");
                 connect_menu.refresh_all();
                 int ch;
                 while ((ch = getch()) != 10) {
@@ -171,7 +171,15 @@ int main(int argc, char* argv[]) {
                 if (connect_menu.evaluate_choice() != 0) {
                     configured = true;
                 }
+
+                draw_mutex.lock();
                 connect_menu.erase();
+                connect_menu.refresh_all();
+                draw_mutex.unlock();
+
+                if (connect_menu.evaluate_choice() == 1) {
+                    // TODO: start getting connections and output information about connected users
+                }
 
             } else if (main_choice == 2) {
                 configured = true;

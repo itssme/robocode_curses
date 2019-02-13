@@ -35,6 +35,6 @@ void Game::tick_all() {
 
 void Game::draw_all() {
     for (auto robot:this->robots) {
-        robot.draw(this->window);
+        robot.draw();
     }
 }
