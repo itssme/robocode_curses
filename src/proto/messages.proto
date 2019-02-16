@@ -1,17 +1,41 @@
-syntax = "proto2";
+syntax = "proto3";
 package shared;
 
 message Position {
-  required int32 x = 1;
-  required int32 y = 2;
+    double x = 1;
+    double y = 2;
 }
 
 message GunPosition {
-  required int32 degrees = 1;
+    int32 degrees = 1;
 }
 
-message Update {
-  required Position pos = 1;
-  optional GunPosition gun_pos = 2;
-  optional bool shot = 3;
+message UpdateFromClient {
+    Position pos = 1;
+    GunPosition gun_pos = 2;
+    bool shot = 3;
+}
+
+message Robot {
+    int32 id = 1;
+    double energy_left = 2;
+    Position pos = 3;
+}
+
+// hitWall:
+// 0 is left
+// 1 is top
+// 2 is right
+// 3 is down
+// energy:
+// set new energy if the robot has been hit
+// 0 menas the robot is dead
+message UpdateFromServer {
+    repeated int32 hitWall = 1;
+    int32 energy = 2;
+    Robot scanned_robot = 3;
+}
+
+service Game {
+    rpc GetUpdate(UpdateFromServer) returns (UpdateFromClient) {}
 }

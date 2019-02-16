@@ -25,7 +25,7 @@ namespace drawable {
 
     class Robot : public DrawableObject {
     public:
-        float gun_rotation{0};
+        double gun_rotation{0};
         int gun_x[2];
         int gun_y[2];
         Robot(WINDOW *parent_window, int begin_y, int begin_x, int width = 4, int height = 7);

@@ -14,12 +14,12 @@
 
 class Robot {
 public:
-    float pos_x;
-    float pos_y;
-    float speed_x;
-    float speed_y;
+    double pos_x;
+    double pos_y;
+    double speed_x;
+    double speed_y;
     int gun_degree;
-    float energy;
+    double energy;
     drawable::Robot drawable_robot;
     void draw();
     Bullet shoot();
