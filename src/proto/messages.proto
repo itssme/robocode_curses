@@ -27,13 +27,16 @@ message Robot {
 // 1 is top
 // 2 is right
 // 3 is down
+// hitRobot:
+// id of the robot
 // energy:
 // set new energy if the robot has been hit
-// 0 menas the robot is dead
+// 0 means the robot is dead
 message UpdateFromServer {
     repeated int32 hitWall = 1;
-    int32 energy = 2;
-    Robot scanned_robot = 3;
+    repeated int32 hitRobot = 2;
+    int32 energy = 3;
+    Robot scanned_robot = 4;
 }
 
 service Game {
