@@ -2,6 +2,7 @@
 #include <fstream>
 #include <string>
 #include <ncurses.h>
+#undef OK
 #include <messages.pb.h>
 #include <thread>
 #include <chrono>
@@ -9,6 +10,8 @@
 
 #include "curses_utils.h"
 #include "curses_drawable_objects.h"
+#include "server.h"
+#define OK      (0)
 
 using namespace std;
 
@@ -18,6 +21,15 @@ mutex draw_mutex;
 
 void server() {
     cout << "SERVER" << endl;
+    std::string server_address("0.0.0.0:5000");
+    ServerImpl service;
+
+    ServerBuilder builder;
+    builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
+    builder.RegisterService(&service);
+    std::unique_ptr<Server> server(builder.BuildAndStart());
+    std::cout << "Server listening on " << server_address << std::endl;
+    server->Wait();
 }
 
 void client() {
@@ -77,6 +89,7 @@ int main(int argc, char* argv[]) {
     cout << msg.y() << endl;
 
     google::protobuf::ShutdownProtobufLibrary();
+    server();
 
     initscr();
     cbreak();

@@ -331,7 +331,6 @@ file(GLOB protos src/proto/*.proto)
 protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ${protos})
 grpc_generate_cpp(GRPC_SRCS GRPC_HDRS ${protos})
 
-
 file(GLOB sources include/*.h src/communication/*.cpp src/game_objects/*.cpp src/*.cpp)
 #message(${sources})
 add_executable(robocode ${sources} ${PROTO_SRCS} ${PROTO_HDRS} ${GRPC_SRCS} ${GRPC_HDRS})

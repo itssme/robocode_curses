@@ -1,25 +1,31 @@
 syntax = "proto3";
 package shared;
 
+message Empty {}
+
 message Position {
     double x = 1;
     double y = 2;
+}
+
+message PlayerId {
+    int32 id = 1;
 }
 
 message GunPosition {
     int32 degrees = 1;
 }
 
-message UpdateFromClient {
-    Position pos = 1;
-    GunPosition gun_pos = 2;
-    bool shot = 3;
-}
-
 message Robot {
     int32 id = 1;
     double energy_left = 2;
     Position pos = 3;
+}
+
+message UpdateFromClient {
+    Position pos = 1;
+    GunPosition gun_pos = 2;
+    bool shot = 3;
 }
 
 // hitWall:
@@ -39,6 +45,10 @@ message UpdateFromServer {
     Robot scanned_robot = 4;
 }
 
-service Game {
-    rpc GetUpdate(UpdateFromServer) returns (UpdateFromClient) {}
+service GameServer {
+    rpc RegisterClient(Empty) returns (PlayerId);
+}
+
+service Client {
+    rpc GetUpdate(UpdateFromServer) returns (UpdateFromClient);
 }
