@@ -12,6 +12,11 @@ message PlayerId {
     int32 id = 1;
 }
 
+message Register {
+    string name = 1;
+    int32 port = 2;
+}
+
 message GunPosition {
     int32 degrees = 1;
 }
@@ -43,10 +48,11 @@ message UpdateFromServer {
     repeated int32 hitRobot = 2;
     int32 energy = 3;
     Robot scanned_robot = 4;
+    Position pos = 5; // position of the robot
 }
 
 service GameServer {
-    rpc RegisterClient(Empty) returns (PlayerId);
+    rpc RegisterClient(Register) returns (PlayerId);
 }
 
 service Client {

@@ -7,7 +7,7 @@
 */
 #include "client.h"
 
-Status Client::GetUpdate(grpc::ServerContext *context, const shared::UpdateFromServer *msg,
+Status ClientImpl::GetUpdate(grpc::ServerContext *context, const shared::UpdateFromServer *msg,
                                shared::UpdateFromClient *response) {
     return Status::OK;
 }

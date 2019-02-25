@@ -37,7 +37,8 @@ public:
 
 class ServerImpl final: public GameServer::Service {
 public:
-    Status RegisterClient(grpc::ServerContext *context, const shared::Empty *msg, shared::PlayerId *response) override;
+    std::vector<Connection> connections;
+    Status RegisterClient(grpc::ServerContext *context, const shared::Register *msg, shared::PlayerId *response) override;
 };
 
 

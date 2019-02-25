@@ -11,6 +11,7 @@
 #include "curses_utils.h"
 #include "curses_drawable_objects.h"
 #include "server.h"
+#include "client.h"
 #define OK      (0)
 
 using namespace std;
@@ -25,7 +26,7 @@ void server() {
     ServerImpl service;
 
     ServerBuilder builder;
-    builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
+    builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());  // this will not throw an error if the port is already in use
     builder.RegisterService(&service);
     std::unique_ptr<Server> server(builder.BuildAndStart());
     std::cout << "Server listening on " << server_address << std::endl;
@@ -34,6 +35,23 @@ void server() {
 
 void client() {
     cout << "CLIENT" << endl;
+
+    std::string server_address("0.0.0.0:0"); // ':0' will choose an random available port
+    ClientImpl service;
+
+    ServerBuilder builder;
+    int selected_port = 0;
+    builder.AddListeningPort(server_address, grpc::InsecureServerCredentials(), &selected_port);
+    builder.RegisterService(&service);
+    std::unique_ptr<Server> server(builder.BuildAndStart());
+
+
+    Advertise ad(grpc::CreateChannel("localhost:5000", grpc::InsecureChannelCredentials()));
+    int id = ad.Register("Bla", selected_port);
+    cout << "ID: " << id << endl;
+
+    std::cout << "Server listening on " << server_address << ":" << selected_port << std::endl;
+    server->Wait();
 }
 
 void background_robot() {
@@ -79,7 +97,6 @@ void background_robot() {
 
 int main(int argc, char* argv[]) {
     GOOGLE_PROTOBUF_VERIFY_VERSION;
-    mutex input;
 
     shared::Position msg;
     msg.set_x(10);
@@ -88,8 +105,15 @@ int main(int argc, char* argv[]) {
     cout << msg.x() << endl;
     cout << msg.y() << endl;
 
+    int i;
+    cin >> i;
+    if (i == 0) {
+        server();
+    } else {
+        client();
+    }
+
     google::protobuf::ShutdownProtobufLibrary();
-    server();
 
     initscr();
     cbreak();
