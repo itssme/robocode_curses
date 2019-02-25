@@ -133,13 +133,15 @@ private:
     WINDOW* window;
     std::vector<Option> options{};
     std::vector<OptionTextInput> options_text_input{};
+    int height;
+    int width;
+    int pos_y;
+    int pos_x;
 public:
     Menu(WINDOW* parent_window, const std::vector<std::string> &option_names, const int &input_options, const std::string &title) {
         this->parent_window = parent_window;
 
         if (parent_window == nullptr) {
-            int pos_x, pos_y, width, height;
-
             height = LINES / 3;
             width = COLS / 3;
 
@@ -180,6 +182,25 @@ public:
         this->options.at(0).select();
         this->at_option = 0;
     }
+    void loop(std::mutex* draw_mutex) {
+        int ch;
+        while ((ch = getch()) != 10) {
+            if (ch == 66) {
+                this->down();
+            } else if (ch == 65) {
+                this->up();
+            } else {
+                this->pass_input(ch);
+            }
+
+            draw_mutex->lock();
+            this->refresh_all();
+            draw_mutex->unlock();
+        }
+    }
+    std::tuple<int, int, int, int> get_size() {
+        return std::make_tuple(height, width, pos_y, pos_x);
+    };
     void up() {
         if (at_option < options.size()) {
             this->options.at(at_option).de_select();

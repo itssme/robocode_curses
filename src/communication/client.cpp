@@ -9,5 +9,11 @@
 
 Status ClientImpl::GetUpdate(grpc::ServerContext *context, const shared::UpdateFromServer *msg,
                                shared::UpdateFromClient *response) {
+    std::cout << msg->DebugString() << std::endl;
+    response->set_shot(true);
+    response->mutable_pos()->set_x(10.0);
+    response->mutable_pos()->set_y(12.0);
+    response->mutable_gun_pos()->set_degrees(45);
+
     return Status::OK;
 }
