@@ -23,6 +23,49 @@ WINDOW *create_newwin(int height, int width, int starty, int startx) {
     return local_win;
 };
 
+class DisplayText {
+private:
+    WINDOW* parent_window;
+    std::string title;
+    WINDOW* window;
+    std::vector<std::string> text;
+    int height;
+    int width;
+    int pos_y;
+    int pos_x;
+public:
+    DisplayText(WINDOW* parent_window, const std::vector<std::string> &text, const int &input_options, const std::string &title) {
+        if (parent_window == nullptr) {
+            height = LINES / 3;
+            width = COLS / 3;
+
+            pos_y = (LINES - height) / 2;
+            pos_x = (COLS - width) / 2;
+            this->window = create_newwin(height, width, pos_y, pos_x);
+            wrefresh(this->window);
+            refresh();
+        } else {
+            // if the parent window is too small this will cause a segfault
+            this->window = derwin(parent_window,
+                                  parent_window->_maxy / 3,
+                                  parent_window->_maxx / 3,
+                                  (parent_window->_maxy - parent_window->_maxy / 3) / 2,
+                                  (parent_window->_maxx - parent_window->_maxx / 3) / 2);
+            box(this->window, 0 , 0);
+            touchwin(this->window);
+            wrefresh(this->window);
+        }
+
+        mvwaddstr(this->window, 0, 1, title.c_str());
+        this->title = title;
+
+        // TODO: add options to vector and display them
+
+
+    }
+
+};
+
 struct Option {
 public:
     std::string title;

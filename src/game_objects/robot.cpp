@@ -6,24 +6,48 @@
  * class: 5CHIF
 */
 
-#include "robot.h"
+#include "game_objects.h"
 
-Robot::Robot(WINDOW* parent_window, drawable::Robot drawable_robot) : drawable_robot(drawable_robot) {
-
+GameObjects::Robot::Robot(WINDOW* parent_window, drawable::Robot drawable_robot) : GameObject(drawable_robot.pos_height,
+                                                                                 drawable_robot.pos_width, 0, 0),
+                                                                      drawable_robot(drawable_robot) {
+    this->parent_window = parent_window;
 }
 
-void Robot::draw() {
-
+void GameObjects::Robot::tick() {
+    this->pos_height += this->speed_height;
+    this->pos_width += this->speed_width;
 }
 
-bool Robot::check_collision(Robot robot) {
+void GameObjects::Robot::draw() {
+    this->drawable_robot.pos_height = static_cast<int>(this->pos_height);
+    this->drawable_robot.pos_width = static_cast<int>(pos_width);
+    this->drawable_robot.draw();
+}
+
+bool GameObjects::Robot::check_collision(Robot robot) {
     return false;
 }
 
-bool Robot::check_collision(Bullet bullet) {
+bool GameObjects::Robot::check_collision(Bullet bullet) {
     return false;
 }
 
-Bullet Robot::shoot() {
+GameObjects::Bullet GameObjects::Robot::shoot() {
 
+}
+
+void GameObjects::Robot::set_speed(double speed_height, double speed_width) {
+    this->speed_height = speed_height;
+    this->speed_width = speed_width;
+}
+
+void GameObjects::Robot::set_pos(double pos_height, double pos_width) {
+    this->pos_height = pos_height;
+    this->pos_width = pos_width;
+}
+
+void GameObjects::Robot::set_gun_rotation(double degrees) {
+    this->gun_degree = fmod(degrees, 360);
+    this->drawable_robot.set_gun_rotation(degrees);
 }

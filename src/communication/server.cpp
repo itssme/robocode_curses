@@ -16,7 +16,7 @@ Status ServerImpl::RegisterClient(grpc::ServerContext *context, const shared::Re
 
      std::cout << ip + ":" + std::to_string(msg->port()) << std::endl;
      std::string connect_str = ip + ":" + std::to_string(msg->port());
-    this->connections.push_back(new Connection(grpc::CreateChannel(connect_str, grpc::InsecureChannelCredentials()), id));
+    this->connections.push_back(new Connection(grpc::CreateChannel(connect_str, grpc::InsecureChannelCredentials()), id, msg->name()));
     //this->connections.push_back(new Connection(grpc::CreateChannel("localhost:41553", grpc::InsecureChannelCredentials()), id));
 
     response->Clear();

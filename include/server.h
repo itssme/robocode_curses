@@ -32,8 +32,10 @@ class Connection {
 public:
     std::unique_ptr<shared::Client::Stub> stub_;
     int id;
-    Connection(std::shared_ptr<grpc::Channel> channel, int id) : stub_(shared::Client::NewStub(channel)) {
+    std::string username;
+    Connection(std::shared_ptr<grpc::Channel> channel, int id, std::string name) : stub_(shared::Client::NewStub(channel)) {
         this->id = 10;
+        this->username = name;
     }
     int sanity_check() {
         std::cout << "in check" << std::endl;

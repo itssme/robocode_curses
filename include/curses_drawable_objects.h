@@ -14,13 +14,13 @@
 namespace drawable {
     class DrawableObject {
     public:
-        int pos_x;
-        int pos_y;
+        int pos_width;
+        int pos_height;
         int width;
         int height;
         WINDOW *window;
         WINDOW *parent_window;
-        void move(int pos_y, int pos_x);
+        void move(int pos_height, int pos_width);
     };
 
     class Robot : public DrawableObject {
@@ -28,7 +28,7 @@ namespace drawable {
         double gun_rotation{0};
         int gun_x[2];
         int gun_y[2];
-        Robot(WINDOW *parent_window, int begin_y, int begin_x, int width = 4, int height = 7);
+        Robot(WINDOW *parent_window, int begin_height, int begin_width, int width = 4, int height = 7);
         void set_gun_rotation(float new_rotation);
         void draw_gun();
         void draw(bool remove_old= true);
@@ -37,7 +37,7 @@ namespace drawable {
 
     class Bullet : public DrawableObject {
     public:
-        Bullet(WINDOW *parent_window, int begin_y, int begin_x, int width = 1, int height = 1);
+        Bullet(WINDOW *parent_window, int begin_height, int begin_width, int width = 1, int height = 1);
         void draw(bool remove_old= true);
         void refresh();
     };

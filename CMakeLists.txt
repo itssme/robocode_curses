@@ -327,6 +327,15 @@ include_directories(${PROTOBUF_INCLUDE_DIRS})
 include_directories(${GRPC_INCLUDE_DIRS})
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
+# SPDLOG
+include_directories("/home/joel/Documents/school/nvs_5te_klasse/inclue_libs/spdlog/include")
+
+# TODO: set env variables
+#include_directories($ENV{ASIO_INCLUDE_PATH})
+#include_directories($ENV{SPDLOG_INCLUDE_PATH})
+#include_directories($ENV{FMT_PATH})  # should refer to the root directory of fmt
+#include_directories($ENV{JSON_INCLUDE_PATH})  # should refer to the directory 'src' of json
+
 file(GLOB protos src/proto/*.proto)
 protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ${protos})
 grpc_generate_cpp(GRPC_SRCS GRPC_HDRS ${protos})

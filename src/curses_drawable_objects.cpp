@@ -10,18 +10,18 @@
 #include <cmath>
 #include <string>
 
-void drawable::DrawableObject::move(int pos_y, int pos_x) {
-    this->pos_y = pos_y;
-    this->pos_x = pos_x;
+void drawable::DrawableObject::move(int pos_height, int pos_width) {
+    this->pos_height = pos_height;
+    this->pos_width = pos_width;
 }
 
-drawable::Robot::Robot(WINDOW *parent_window, int begin_y, int begin_x, int height, int width) : DrawableObject() {
-    this->pos_x = begin_x;
-    this->pos_y = begin_y;
+drawable::Robot::Robot(WINDOW *parent_window, int begin_height, int begin_width, int height, int width) : DrawableObject() {
+    this->pos_width = begin_width;
+    this->pos_height = begin_height;
     this->width = width;
     this->height = height;
     this->parent_window = parent_window;
-    this->window = derwin(parent_window, height, width, begin_y, begin_x);
+    this->window = derwin(parent_window, height, width, begin_height, begin_width);
     this->gun_rotation = 0;
     this->gun_x[0] = 1;
     this->gun_y[0] = 0;
@@ -63,7 +63,7 @@ void drawable::Robot::draw(bool remove_old) {
     if (remove_old) {
         this->refresh();
     }
-    this->window = derwin(parent_window, this->height, this->width, pos_y, pos_x);
+    this->window = derwin(parent_window, this->height, this->width, pos_height, pos_width);
     box(this->window, 0, 0);
     draw_gun();
     this->refresh();
@@ -74,13 +74,13 @@ void drawable::Robot::refresh() {
     wrefresh(this->window);
 }
 
-drawable::Bullet::Bullet(WINDOW *parent_window, int begin_y, int begin_x, int width, int height) {
-    this->pos_x = begin_x;
-    this->pos_y = begin_y;
+drawable::Bullet::Bullet(WINDOW *parent_window, int begin_height, int begin_width, int width, int height) {
+    this->pos_width = begin_width;
+    this->pos_height = begin_height;
     this->width = width;
     this->height = height;
     this->parent_window = parent_window;
-    this->window = derwin(parent_window, height, width, begin_y, begin_x);
+    this->window = derwin(parent_window, height, width, begin_height, begin_width);
     box(this->window, 0, 0);
     this->refresh();
 }
@@ -90,7 +90,7 @@ void drawable::Bullet::draw(bool remove_old) {
     if (remove_old) {
         this->refresh();
     }
-    this->window = derwin(parent_window, this->height, this->width, pos_y, pos_x);
+    this->window = derwin(parent_window, this->height, this->width, pos_height, pos_width);
     box(this->window, 0, 0);
     this->refresh();
 }

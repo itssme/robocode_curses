@@ -9,10 +9,18 @@
 #include <chrono>
 #include <random>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wsign-conversion"
+#include "spdlog/spdlog.h"
+#include "spdlog/sinks/basic_file_sink.h"
+#pragma GCC diagnostic pop
+
 #include "curses_utils.h"
 #include "curses_drawable_objects.h"
+#include "game_objects.h"
 #include "server.h"
 #include "client.h"
+#include "game.h"
 #define OK      (0)
 
 using namespace std;
@@ -22,26 +30,18 @@ bool running{false};
 mutex draw_mutex;
 
 void server() {
-    cout << "SERVER" << endl;
+    spdlog::info("in server");
     std::string server_address("0.0.0.0:5000"); // TODO: read port from config json file
-    ServerImpl service;
 
-    ServerBuilder builder;
-    builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());  // this will not throw an error if the port is already in use
-    builder.RegisterService(&service);
-    std::unique_ptr<Server> server(builder.BuildAndStart());
-    std::cout << "Server listening on " << server_address << std::endl;
-    thread waiting([&]{
-        server->Wait();
-    });
-    std::cout << "after wait" << std::endl;
-    while (service.connections.empty()) {
+    Game game(main_window, server_address);
+
+    std::cout << "after game init" << std::endl;
+
+    while (game.service.connections.empty()) {
         this_thread::sleep_for(chrono::seconds(1));
     }
-    std::cout << "sanity check" << std::endl;
-    std::cout << service.connections.at(0)->id << std::endl;
-    service.connections.at(0)->sanity_check();
-    std::cout << "DONE" << std::endl;
+    std::cout << game.service.connections.at(0)->id << std::endl;
+    game.service.connections.at(0)->sanity_check();
     while (1) {
         this_thread::sleep_for(chrono::seconds(1));
     }
@@ -75,16 +75,14 @@ void client() {
 
 void background_robot() {
     this_thread::sleep_for(std::chrono::seconds(1));
-    float speed_width = 1;
-    float speed_height = 1;
-    drawable::Robot robot = drawable::Robot(main_window, 6, 6);
+    drawable::Robot draw_rob(main_window, 6, 6);
+    GameObjects::Robot robot(main_window, draw_rob);
+
     random_device rd;
     mt19937 gen{rd()};
-    uniform_real_distribution<float> dis_x{2, (float) COLS-(robot.height+3)};
-    uniform_real_distribution<float> dis_y{2, (float) LINES-(robot.width+3)};
-    float pos_width = dis_x(gen);
-    float pos_height = dis_y(gen);
-    float rotation = 0;
+    uniform_real_distribution<double> dis_x{2, (double) COLS-(draw_rob.height+3)};
+    uniform_real_distribution<double> dis_y{2, (double) LINES-(draw_rob.width+3)};
+    double rotation = 0;
 
     // calcuate size of menu window
     int height_obstacle = LINES / 3;
@@ -93,60 +91,67 @@ void background_robot() {
     int pos_height_obstacle = (LINES - height_obstacle) / 2;
     int pos_width_obstacle = (COLS - width_obstacle) / 2;
 
+    robot.set_speed(1, 1);
+    robot.set_pos(dis_y(gen), dis_x(gen));
+
     while (running) {
-        pos_height += speed_height;
-        pos_width += speed_width;
-        robot.move(pos_height, pos_width);
+        robot.tick();
 
         draw_mutex.lock();
         robot.draw();
         draw_mutex.unlock();
 
         robot.set_gun_rotation(rotation);
-        rotation+=10;
+        rotation += 10;
 
-        if (pos_height >= LINES-(robot.height+1)) {
-            speed_height = -1;
-        } else if (pos_height <= 2) {
-            speed_height = 1;
+        // check for collision with outside border
+        if (robot.pos_height >= LINES-(robot.drawable_robot.height+1)) {
+            robot.speed_height = -1;
+        } else if (robot.pos_height <= 2) {
+            robot.speed_height = 1;
         }
 
-        if (pos_width >= COLS-(robot.width+1)) {
-            speed_width = -1;
-        } else if (pos_width <= 2) {
-            speed_width = 1;
+        if (robot.pos_width >= COLS-(robot.drawable_robot.width+1)) {
+            robot.speed_width = -1;
+        } else if (robot.pos_width <= 2) {
+            robot.speed_width = 1;
         }
 
-        if (pos_width - 1 < pos_width_obstacle + width_obstacle && pos_width + robot.width + 1 > pos_width_obstacle &&
-                pos_height - 1 < pos_height_obstacle + height_obstacle && pos_height + robot.height + 1 > pos_height_obstacle ) {
-            /*
-            if (pos_width + robot.width + 1 > pos_width_obstacle && pos_width - 1 < pos_width_obstacle + width_obstacle) {
-                speed_width *= -1;
-            } else if (pos_height + robot.height + 1 > pos_height_obstacle && pos_height - 1 < pos_height_obstacle + height_obstacle) {
-                //speed_height *= -1;
+        // if the terminal has an odd number as height this wont work perfectly
+        // check for collision with main menu and set new speed
+        if (robot.pos_width - 1 < pos_width_obstacle + width_obstacle && robot.pos_width + robot.drawable_robot.width + 1 > pos_width_obstacle &&
+                robot.pos_height - 1 < pos_height_obstacle + height_obstacle && robot.pos_height + robot.drawable_robot.height + 1 > pos_height_obstacle ) {
+            if (pos_height_obstacle == static_cast<int>(robot.pos_height) + robot.drawable_robot.height + 1) {
+                robot.speed_height *= -1;
             }
-            */
-
-            if (pos_height_obstacle == static_cast<int>(pos_height) + robot.height + 1) {
-                speed_height *= -1;
+            if (static_cast<int>(robot.pos_height) == pos_height_obstacle + height_obstacle - 1) {
+                robot.speed_height *= -1;
             }
-            if (static_cast<int>(pos_height) == pos_height_obstacle + height_obstacle - 1) {
-                speed_height *= -1;
+            if (pos_width_obstacle == static_cast<int>(robot.pos_width) + robot.drawable_robot.width) {
+                robot.speed_width *= -1;
             }
-            if (pos_width_obstacle == static_cast<int>(pos_width) + robot.width) {
-                speed_width *= -1;
-            }
-            if (static_cast<int>(pos_width) == pos_width_obstacle + width_obstacle) {
-                speed_width *= -1;
+            if (static_cast<int>(robot.pos_width) == pos_width_obstacle + width_obstacle) {
+                robot.speed_width = 1;
             }
         }
 
-        this_thread::sleep_for(std::chrono::milliseconds(10));
+        this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 }
 
 int main(int argc, char* argv[]) {
     GOOGLE_PROTOBUF_VERIFY_VERSION;
+
+    // create logger
+    try {
+        auto logger = spdlog::basic_logger_mt("file_logger", "log.log");
+        spdlog::set_default_logger(logger);
+        spdlog::set_level(spdlog::level::info); // TODO: read loglevel from config file
+    } catch (const spdlog::spdlog_ex &ex) {
+        std::cout << "Log init failed: " << ex.what() << std::endl;
+    }
+
+    spdlog::info("started");
 
     shared::Position msg;
     msg.set_x(10);
@@ -177,8 +182,8 @@ int main(int argc, char* argv[]) {
     thread t = thread(background_robot);
 
     bool is_server = false;
-
     bool configured = false;
+
     while (! configured) {
         int main_choice;
 
@@ -187,9 +192,10 @@ int main(int argc, char* argv[]) {
             main_menu_config.emplace_back("Connect to a game");
             main_menu_config.emplace_back("Host a new game");
             main_menu_config.emplace_back("Exit game");
+            draw_mutex.lock();
             Menu main_menu = Menu(main_window, main_menu_config, 0, " Robocode Menu ");
-
             main_menu.refresh_all();
+            draw_mutex.unlock();
             main_menu.loop(&draw_mutex);
             main_choice = main_menu.evaluate_choice();
 
@@ -204,8 +210,10 @@ int main(int argc, char* argv[]) {
                 vector<string> tmp;
                 tmp.emplace_back("Back ..");
                 tmp.emplace_back("Connect to");
+                draw_mutex.lock();
                 Menu connect_menu = Menu(main_window, tmp, 1, " Connect Menu ");
                 connect_menu.refresh_all();
+                draw_mutex.unlock();
                 connect_menu.loop(&draw_mutex);
                 if (connect_menu.evaluate_choice() != 0) {
                     configured = true;
@@ -220,8 +228,10 @@ int main(int argc, char* argv[]) {
                 vector<string> tmp;
                 tmp.emplace_back("Back ..");
                 tmp.emplace_back("Start getting connections");
+                draw_mutex.lock();
                 Menu connect_menu = Menu(main_window, tmp, 0, " Host Menu ");
                 connect_menu.refresh_all();
+                draw_mutex.unlock();
                 connect_menu.loop(&draw_mutex);
                 if (connect_menu.evaluate_choice() != 0) {
                     configured = true;
@@ -238,6 +248,8 @@ int main(int argc, char* argv[]) {
             }
         }
     }
+
+    spdlog::info("stopped");
 
     running = false;
     t.join();
