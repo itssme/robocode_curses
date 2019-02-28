@@ -34,10 +34,10 @@ message UpdateFromClient {
 }
 
 // hitWall:
-// 0 is left
-// 1 is top
-// 2 is right
-// 3 is down
+// 1 is left
+// 2 is top
+// 3 is right
+// 4 is down
 // hitRobot:
 // id of the robot
 // energy:

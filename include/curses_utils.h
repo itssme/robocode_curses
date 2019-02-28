@@ -23,49 +23,6 @@ WINDOW *create_newwin(int height, int width, int starty, int startx) {
     return local_win;
 };
 
-class DisplayText {
-private:
-    WINDOW* parent_window;
-    std::string title;
-    WINDOW* window;
-    std::vector<std::string> text;
-    int height;
-    int width;
-    int pos_y;
-    int pos_x;
-public:
-    DisplayText(WINDOW* parent_window, const std::vector<std::string> &text, const int &input_options, const std::string &title) {
-        if (parent_window == nullptr) {
-            height = LINES / 3;
-            width = COLS / 3;
-
-            pos_y = (LINES - height) / 2;
-            pos_x = (COLS - width) / 2;
-            this->window = create_newwin(height, width, pos_y, pos_x);
-            wrefresh(this->window);
-            refresh();
-        } else {
-            // if the parent window is too small this will cause a segfault
-            this->window = derwin(parent_window,
-                                  parent_window->_maxy / 3,
-                                  parent_window->_maxx / 3,
-                                  (parent_window->_maxy - parent_window->_maxy / 3) / 2,
-                                  (parent_window->_maxx - parent_window->_maxx / 3) / 2);
-            box(this->window, 0 , 0);
-            touchwin(this->window);
-            wrefresh(this->window);
-        }
-
-        mvwaddstr(this->window, 0, 1, title.c_str());
-        this->title = title;
-
-        // TODO: add options to vector and display them
-
-
-    }
-
-};
-
 struct Option {
 public:
     std::string title;
@@ -172,14 +129,15 @@ class Menu {
 private:
     WINDOW* parent_window;
     std::string title;
+protected:
     int at_option;
-    WINDOW* window;
-    std::vector<Option> options{};
-    std::vector<OptionTextInput> options_text_input{};
     int height;
     int width;
     int pos_y;
     int pos_x;
+    WINDOW* window;
+    std::vector<Option> options{};
+    std::vector<OptionTextInput> options_text_input{};
 public:
     Menu(WINDOW* parent_window, const std::vector<std::string> &option_names, const int &input_options, const std::string &title) {
         this->parent_window = parent_window;
@@ -314,6 +272,36 @@ public:
             op.erase();
         }
         werase(this->window);
+    }
+};
+
+class VariableMenu : public Menu {
+private:
+    std::vector<std::string> text;
+public:
+    VariableMenu(WINDOW *parent_window, const std::vector<std::string> &option_names, const int &input_options,
+                 const std::string &title) : Menu(parent_window, option_names, input_options, title) {
+        text.insert(text.end(), option_names.begin(), option_names.end());
+    }
+    void add_option(const std::string &option) {
+        this->options.at(this->at_option).de_select();
+        this->options.at(this->at_option).erase();
+        this->options.at(this->at_option).refresh();
+        this->text.push_back(option);
+        this->redraw();
+        this->options.at(this->at_option).select();
+        this->refresh_all();
+    }
+    void redraw() {
+        this->options.clear();
+
+        for (int i = 0; i < this->text.size(); i++) {
+            this->options.emplace_back(Option(this->window, this->text.at(i),
+                                              static_cast<int>(this->text.at(i).size()) + 1,
+                                              static_cast<int>(window->_maxy / 2 - this->text.size() / 2 + i),
+                                              static_cast<int>(window->_maxx / 2 -
+                                                      this->text.at(i).length() / 2)));
+        }
     }
 };
 

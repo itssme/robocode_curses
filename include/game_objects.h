@@ -19,13 +19,16 @@ namespace GameObjects {
         double pos_width;
         double speed_height;
         double speed_width;
-        GameObject(double pos_height, double pos_width, double speed_height, double speed_width) {
+        int height;
+        int width;
+        GameObject(double pos_height, double pos_width, double speed_height, double speed_width, int height, int width) {
             this->pos_height = pos_height;
             this->pos_width = pos_width;
             this->speed_height = speed_height;
             this->speed_width = speed_width;
+            this->height = height;
+            this->width = width;
         }
-        virtual void draw()= 0;
         virtual void tick()= 0;
     };
 
@@ -33,24 +36,32 @@ namespace GameObjects {
     public:
         drawable::Bullet drawable_bullet;
         void draw();
-        void tick();
+        void tick() override;
         WINDOW *parent_window;
         Bullet(WINDOW *parent_window, double pos_height, double pos_width, double speed_height, double speed_width);
     };
 
-    class Robot : public GameObject {
+    class BasicRobot : public GameObject {
     public:
         double gun_degree;
         double energy;
-        drawable::Robot drawable_robot;
-        void draw() override;
         Bullet shoot();
         void tick() override;
-        bool check_collision(Robot robot); // check if this robot has collided with the one provided
+        bool check_collision(BasicRobot robot); // check if this robot has collided with the one provided
         bool check_collision(Bullet bullet);
         void set_speed(double speed_height, double speed_width);
         void set_pos(double pos_height, double pos_width);
-        void set_gun_rotation(double degrees);
+        virtual void set_gun_rotation(double degrees);
+        BasicRobot(double pos_height, double pos_width, double speed_height,double speed_width,
+                   int height,int width, int energy, double gun_rotation);
+    };
+
+    // extend BasicRobot and make it drawable
+    class Robot : public BasicRobot {
+    public:
+        drawable::Robot drawable_robot;
+        void draw();
+        void set_gun_rotation(double degrees) override;
         WINDOW *parent_window;
         Robot(WINDOW *parent_window, drawable::Robot drawable_robot);
     };

@@ -8,13 +8,18 @@
 
 #include "game_objects.h"
 
-GameObjects::Robot::Robot(WINDOW* parent_window, drawable::Robot drawable_robot) : GameObject(drawable_robot.pos_height,
-                                                                                 drawable_robot.pos_width, 0, 0),
-                                                                      drawable_robot(drawable_robot) {
+GameObjects::BasicRobot::BasicRobot(double pos_height, double pos_width, double speed_height, double speed_width,
+                                    int height, int width, int energy, double gun_rotation) : GameObject(pos_height, pos_width, speed_height,
+                                                                        speed_width, height, width) {
+}
+
+GameObjects::Robot::Robot(WINDOW* parent_window, drawable::Robot drawable_robot) :
+        drawable_robot(drawable_robot), BasicRobot(drawable_robot.pos_height,drawable_robot.pos_width, 0, 0,
+                                                   drawable_robot.height, drawable_robot.width, 100, 0) {
     this->parent_window = parent_window;
 }
 
-void GameObjects::Robot::tick() {
+void GameObjects::BasicRobot::tick() {
     this->pos_height += this->speed_height;
     this->pos_width += this->speed_width;
 }
@@ -25,27 +30,33 @@ void GameObjects::Robot::draw() {
     this->drawable_robot.draw();
 }
 
-bool GameObjects::Robot::check_collision(Robot robot) {
+bool GameObjects::BasicRobot::check_collision(BasicRobot robot) {
     return false;
 }
 
-bool GameObjects::Robot::check_collision(Bullet bullet) {
-    return false;
+bool GameObjects::BasicRobot::check_collision(Bullet bullet) {
+    return bullet.pos_height >= this->pos_height && bullet.pos_height <= this->pos_height + this->height
+           && bullet.pos_width >= this->pos_width && bullet.pos_width <= this->pos_width + this->width;
 }
 
-GameObjects::Bullet GameObjects::Robot::shoot() {
+GameObjects::Bullet GameObjects::BasicRobot::shoot() {
 
 }
 
-void GameObjects::Robot::set_speed(double speed_height, double speed_width) {
+void GameObjects::BasicRobot::set_speed(double speed_height, double speed_width) {
     this->speed_height = speed_height;
     this->speed_width = speed_width;
 }
 
-void GameObjects::Robot::set_pos(double pos_height, double pos_width) {
+void GameObjects::BasicRobot::set_pos(double pos_height, double pos_width) {
     this->pos_height = pos_height;
     this->pos_width = pos_width;
 }
+
+void GameObjects::BasicRobot::set_gun_rotation(double degrees) {
+    this->gun_degree = fmod(degrees, 360);
+}
+
 
 void GameObjects::Robot::set_gun_rotation(double degrees) {
     this->gun_degree = fmod(degrees, 360);

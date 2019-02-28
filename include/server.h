@@ -17,6 +17,12 @@
 #include <messages.pb.h>
 #include <messages.grpc.pb.h>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wsign-conversion"
+#include "spdlog/spdlog.h"
+#include "spdlog/sinks/basic_file_sink.h"
+#pragma GCC diagnostic pop
+
 #include <grpcpp/security/server_credentials.h>
 
 using grpc::Server;
@@ -33,11 +39,27 @@ public:
     std::unique_ptr<shared::Client::Stub> stub_;
     int id;
     std::string username;
-    Connection(std::shared_ptr<grpc::Channel> channel, int id, std::string name) : stub_(shared::Client::NewStub(channel)) {
-        this->id = 10;
+    std::string peer;
+    Connection(std::shared_ptr<grpc::Channel> channel, int id, std::string name, std::string peer) : stub_(shared::Client::NewStub(channel)) {
+        this->id = id;
         this->username = name;
+        this->peer = peer;
     }
-    int sanity_check() {
+    shared::UpdateFromClient send_message(const shared::UpdateFromServer &message) {
+        shared::UpdateFromClient reply;
+        grpc::ClientContext context;
+
+        Status status = stub_->GetUpdate(&context, message, &reply);
+
+        if (status.ok()) {
+            return reply;
+        } else {
+            //std::cout << status.error_code() << ": " << status.error_message() << std::endl;
+            spdlog::error(status.error_code() + ": " + status.error_message());
+            return shared::UpdateFromClient();
+        }
+    }
+    shared::UpdateFromClient sanity_check() {
         std::cout << "in check" << std::endl;
         shared::UpdateFromServer update;
         update.set_energy(100);
@@ -45,7 +67,7 @@ public:
         update.add_hitwall(0);
 
         update.mutable_scanned_robot()->mutable_pos()->set_y(22.0);
-        update.mutable_scanned_robot()->mutable_pos()->set_y(25.0);
+        update.mutable_scanned_robot()->mutable_pos()->set_x(25.0);
         update.mutable_scanned_robot()->set_id(1);
         update.mutable_scanned_robot()->set_energy_left(80);
 
@@ -59,12 +81,10 @@ public:
         Status status = stub_->GetUpdate(&context, update, &reply);
 
         if (status.ok()) {
-            std::cout << "got reply:" << std::endl;
-            std::cout << reply.DebugString() << std::endl;
-            return 0;
+            return reply;
         } else {
             std::cout << status.error_code() << ": " << status.error_message() << std::endl;
-            return -1;
+            return shared::UpdateFromClient();
         }
     }
 };

@@ -26,7 +26,6 @@ drawable::Robot::Robot(WINDOW *parent_window, int begin_height, int begin_width,
     this->gun_x[0] = 1;
     this->gun_y[0] = 0;
     box(this->window, 0, 0);
-    this->refresh();
 }
 
 void drawable::Robot::set_gun_rotation(float new_rotation) {

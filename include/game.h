@@ -24,15 +24,18 @@
 class Game {
 private:
     WINDOW* window;
+    std::vector<GameObjects::Bullet> bullets;
     std::vector<GameObjects::Robot> robots;
+    std::unique_ptr<Server> server;
 public:
     ServerImpl service;
     std::thread* server_thread;
     Game(WINDOW* window, std::string server_address);
+    void start();
     void game_loop(bool& running);
     void tick_all();
     void draw_all();
-
+    void shutdown_server();
 };
 
 

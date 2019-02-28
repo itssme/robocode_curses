@@ -35,20 +35,54 @@ void server() {
 
     Game game(main_window, server_address);
 
-    std::cout << "after game init" << std::endl;
+    VariableMenu display_conns(main_window, std::vector<std::string>{"Back .."}, 0, " Press enter to start game ");
+    display_conns.refresh_all();
 
-    while (game.service.connections.empty()) {
-        this_thread::sleep_for(chrono::seconds(1));
+    bool start_game{false};
+    bool go_back{false};
+    thread user_inp = thread([&]{
+        display_conns.loop(&draw_mutex);
+        draw_mutex.lock();
+        start_game = true;
+        if (display_conns.evaluate_choice() == 0) {
+            go_back = true;
+        }
+        draw_mutex.unlock();
+    });
+
+    unsigned int connected_peers = 0;
+    while (not start_game) {
+        draw_mutex.lock();
+        while (game.service.connections.size() != connected_peers) {
+
+            display_conns.add_option(game.service.connections.at(connected_peers)->username + " -> " +
+                                     game.service.connections.at(connected_peers)->peer);
+            connected_peers += 1;
+        }
+        draw_mutex.unlock();
+        this_thread::sleep_for(chrono::milliseconds(10)); // TODO: change to a queue and notify instead of polling
     }
+    user_inp.join();
+
+    if (go_back) {
+        game.shutdown_server();
+        draw_mutex.lock();
+        display_conns.erase();
+        display_conns.refresh_all();
+        draw_mutex.unlock();
+        return;
+    }
+
     std::cout << game.service.connections.at(0)->id << std::endl;
-    game.service.connections.at(0)->sanity_check();
+    std::cout << game.service.connections.at(0)->sanity_check().DebugString() << std::endl;
     while (1) {
         this_thread::sleep_for(chrono::seconds(1));
     }
 }
 
-void client() {
+void client(const std::string &username, const std::string &server_ip) {
     cout << "CLIENT" << endl;
+    cout << username << endl;
 
     std::string server_address("0.0.0.0:0"); // ':0' will choose an random available port
     ClientImpl service;
@@ -64,8 +98,8 @@ void client() {
         server->Wait();
     });
 
-    Advertise ad(grpc::CreateChannel("localhost:5000", grpc::InsecureChannelCredentials())); // TODO: read port from config json
-    int id = ad.Register("Bla", selected_port);
+    Advertise ad(grpc::CreateChannel(server_ip + ":5000", grpc::InsecureChannelCredentials())); // TODO: read port from config json
+    int id = ad.Register(username, selected_port);
     cout << "ID: " << id << endl;
 
     while (1) {
@@ -74,7 +108,6 @@ void client() {
 }
 
 void background_robot() {
-    this_thread::sleep_for(std::chrono::seconds(1));
     drawable::Robot draw_rob(main_window, 6, 6);
     GameObjects::Robot robot(main_window, draw_rob);
 
@@ -153,23 +186,6 @@ int main(int argc, char* argv[]) {
 
     spdlog::info("started");
 
-    shared::Position msg;
-    msg.set_x(10);
-    msg.set_y(10);
-
-    cout << msg.x() << endl;
-    cout << msg.y() << endl;
-
-    /*
-    int i;
-    cin >> i;
-    if (i == 0) {
-        server();
-    } else {
-        client();
-    }
-     */
-
     initscr();
     cbreak();
     noecho();
@@ -181,10 +197,11 @@ int main(int argc, char* argv[]) {
     running = true;
     thread t = thread(background_robot);
 
-    bool is_server = false;
-    bool configured = false;
+    bool stop = false;
+    std::string username;
+    std::string server_ip;
 
-    while (! configured) {
+    while (! stop) {
         int main_choice;
 
         { // MAIN MENU
@@ -212,18 +229,47 @@ int main(int argc, char* argv[]) {
                 tmp.emplace_back("Connect to");
                 draw_mutex.lock();
                 Menu connect_menu = Menu(main_window, tmp, 1, " Connect Menu ");
+                connect_menu.down();
                 connect_menu.refresh_all();
                 draw_mutex.unlock();
                 connect_menu.loop(&draw_mutex);
+
                 if (connect_menu.evaluate_choice() != 0) {
-                    configured = true;
-                    is_server = false;
+                    server_ip = connect_menu.evaluate();
                 }
 
                 draw_mutex.lock();
                 connect_menu.erase();
                 connect_menu.refresh_all();
                 draw_mutex.unlock();
+
+                if (connect_menu.evaluate_choice() != 0) {
+                    vector<string> tmp_usernm;
+                    tmp_usernm.emplace_back("Back ..");
+                    tmp_usernm.emplace_back("Username");
+                    draw_mutex.lock();
+                    Menu username_menu = Menu(main_window, tmp_usernm, 1, " Connect Menu ");
+                    username_menu.down();
+                    username_menu.refresh_all();
+                    draw_mutex.unlock();
+                    username_menu.loop(&draw_mutex);
+                    draw_mutex.lock();
+                    username_menu.erase();
+                    username_menu.refresh_all();
+                    draw_mutex.unlock();
+
+                    if (username_menu.evaluate_choice() != 0) {
+                        username = username_menu.evaluate();
+
+                        // remove endwin and background robot stop
+                        running = false;
+                        t.join();
+                        endwin();
+                        client(username, server_ip);
+                        return 0;
+                    }
+                }
+
             } else if (main_choice == 1) {
                 vector<string> tmp;
                 tmp.emplace_back("Back ..");
@@ -233,35 +279,31 @@ int main(int argc, char* argv[]) {
                 connect_menu.refresh_all();
                 draw_mutex.unlock();
                 connect_menu.loop(&draw_mutex);
-                if (connect_menu.evaluate_choice() != 0) {
-                    configured = true;
-                    is_server = true;
-                }
-
                 draw_mutex.lock();
                 connect_menu.erase();
                 connect_menu.refresh_all();
                 draw_mutex.unlock();
 
+                if (connect_menu.evaluate_choice() != 0) {
+                    server();
+                }
+
             } else if (main_choice == 2) {
-                configured = true;
+                stop = true;
             }
         }
     }
 
-    spdlog::info("stopped");
-
-    running = false;
-    t.join();
-    endwin();
-
-    if (is_server) {
-        server();
-    } else {
-        client();
+    if (running) {
+        running = false;
+        t.join();
     }
 
+    endwin();
+
     google::protobuf::ShutdownProtobufLibrary();
+
+    spdlog::info("shutdown");
 
     return 0;
 }
