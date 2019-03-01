@@ -9,25 +9,19 @@
 #include "game_objects.h"
 
 GameObjects::BasicRobot::BasicRobot(double pos_height, double pos_width, double speed_height, double speed_width,
-                                    int height, int width, int energy, double gun_rotation) : GameObject(pos_height, pos_width, speed_height,
+                                    int energy, double gun_rotation, int height, int width) : GameObject(pos_height, pos_width, speed_height,
                                                                         speed_width, height, width) {
 }
 
 GameObjects::Robot::Robot(WINDOW* parent_window, drawable::Robot drawable_robot) :
         drawable_robot(drawable_robot), BasicRobot(drawable_robot.pos_height,drawable_robot.pos_width, 0, 0,
-                                                   drawable_robot.height, drawable_robot.width, 100, 0) {
+                                                   100, 0, drawable_robot.height, drawable_robot.width) {
     this->parent_window = parent_window;
 }
 
 void GameObjects::BasicRobot::tick() {
     this->pos_height += this->speed_height;
     this->pos_width += this->speed_width;
-}
-
-void GameObjects::Robot::draw() {
-    this->drawable_robot.pos_height = static_cast<int>(this->pos_height);
-    this->drawable_robot.pos_width = static_cast<int>(pos_width);
-    this->drawable_robot.draw();
 }
 
 bool GameObjects::BasicRobot::check_collision(BasicRobot robot) {
@@ -57,6 +51,11 @@ void GameObjects::BasicRobot::set_gun_rotation(double degrees) {
     this->gun_degree = fmod(degrees, 360);
 }
 
+void GameObjects::Robot::draw() {
+    this->drawable_robot.pos_height = static_cast<int>(this->pos_height);
+    this->drawable_robot.pos_width = static_cast<int>(pos_width);
+    this->drawable_robot.draw();
+}
 
 void GameObjects::Robot::set_gun_rotation(double degrees) {
     this->gun_degree = fmod(degrees, 360);

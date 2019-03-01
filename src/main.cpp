@@ -21,6 +21,7 @@
 #include "server.h"
 #include "client.h"
 #include "game.h"
+#include "player.h"
 #define OK      (0)
 
 using namespace std;
@@ -85,6 +86,9 @@ void client(const std::string &username, const std::string &server_ip) {
     cout << username << endl;
 
     std::string server_address("0.0.0.0:0"); // ':0' will choose an random available port
+
+    //GameObjects::BasicRobot robot(0, 0, 0, 0, 100, 0);
+    //Player player(robot);
     ClientImpl service;
 
     ServerBuilder builder;

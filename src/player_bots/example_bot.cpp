@@ -9,9 +9,19 @@
 #include "player.h"
 
 class ExampleBot : public Player {
-    ExampleBot(GameObjects::Robot robot) : Player(std::move(robot)) {};
-    GameObjects::Robot tick(std::vector<GameObjects::BasicRobot> scanned, std::vector<int> hit_wall) override {
-
+    ExampleBot(GameObjects::BasicRobot robot) : Player(std::move(robot)) {};
+    GameObjects::BasicRobot tick(std::vector<GameObjects::BasicRobot> scanned, std::vector<int> hit_wall) override {
+        if (! hit_wall.empty()) {
+            if (hit_wall.at(0) == 1) {
+                this->robot.set_speed(1, 0);
+            } else if (hit_wall.at(0) == 2) {
+                this->robot.set_speed(0, 1);
+            } else if (hit_wall.at(0) == 3) {
+                this->robot.set_speed(-1, 0);
+            } else if (hit_wall.at(0) == 4) {
+                this->robot.set_speed(0, -1);
+            }
+        }
 
         return this->robot;
     };

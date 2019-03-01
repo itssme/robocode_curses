@@ -72,7 +72,8 @@ void Game::tick_all() {
                 if (robots.at(i).energy > 0) {
                     robots.at(i).energy = 0;
                 }
-            } else if (! (bullet.pos_width >= COLS || bullet.pos_height >= LINES || bullet.pos_height <= 0 || bullet.pos_width <= 0)) {
+            } else if (! (bullet.pos_width >= COLS || bullet.pos_height >= LINES ||
+                          bullet.pos_height <= 0 || bullet.pos_width <= 0)) {
                 survived_bullets.push_back(bullet);
             }
         }
@@ -102,12 +103,20 @@ void Game::tick_all() {
         })));
     }
 
-    // TODO: get the future object and tick the object
+    for (auto &update : updates) {
+        shared::UpdateFromClient update_client = std::get<1>(update).get();
+    }
+
+    // TODO: get the future object and update the robot object
 }
 
 void Game::draw_all() {
     for (auto robot: this->robots) {
         robot.draw();
+    }
+
+    for (auto bullet: this->bullets) {
+        bullet.draw();
     }
 }
 

@@ -53,7 +53,7 @@ namespace GameObjects {
         void set_pos(double pos_height, double pos_width);
         virtual void set_gun_rotation(double degrees);
         BasicRobot(double pos_height, double pos_width, double speed_height,double speed_width,
-                   int height,int width, int energy, double gun_rotation);
+                   int energy, double gun_rotation, int width = 4, int height = 7);
     };
 
     // extend BasicRobot and make it drawable

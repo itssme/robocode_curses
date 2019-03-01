@@ -8,30 +8,28 @@
 #ifndef ROBOCODE_CONNECTION_H
 #define ROBOCODE_CONNECTION_H
 
+#include "player.h"
+
 #include <grpcpp/grpcpp.h>
 #include <messages.pb.h>
 #include <messages.grpc.pb.h>
+
 
 using grpc::Status;
 
 class Advertise {
 public:
     std::unique_ptr<shared::GameServer::Stub> stub_;
-    Advertise(std::shared_ptr<grpc::Channel> channel) : stub_(shared::GameServer::NewStub(channel)) {}
+    Advertise(std::shared_ptr<grpc::Channel> channel)
+            : stub_(shared::GameServer::NewStub(channel)) {}
     int Register(const std::string& username, const int port) {
-        // Data we are sending to the server.
         shared::Register request;
         request.set_name(username);
         request.set_port(port);
 
-        // Container for the data we expect from the server.
         shared::PlayerId reply;
-
-        // Context for the client. It could be used to convey extra information to
-        // the server and/or tweak certain RPC behaviors.
         grpc::ClientContext context;
 
-        // The actual RPC.
         Status status = stub_->RegisterClient(&context, request, &reply);
 
         if (status.ok()) {
@@ -46,6 +44,8 @@ public:
 
 class ClientImpl final: public shared::Client::Service {
 public:
+    //Player player;
+    //ClientImpl(Player player) : player(player) {}
     Status GetUpdate(grpc::ServerContext *context, const shared::UpdateFromServer *msg, shared::UpdateFromClient *response) override;
 };
 
