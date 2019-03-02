@@ -28,6 +28,7 @@ public:
     // 4 is down
     // return true if robot should shoot
     bool tick(GameObjects::BasicRobot* scanned, std::vector<int> hit_wall) {
+        this->robot.gun_degree += 10;
 
         // find first wall
         if (at_wall == -1) {

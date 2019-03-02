@@ -54,9 +54,11 @@ public:
         if (status.ok()) {
             return reply;
         } else {
-            std::cout << status.error_code() << ": " << status.error_message() << std::endl;
+            //std::cout << status.error_code() << ": " << status.error_message() << std::endl;
             spdlog::error(status.error_code() + ": " + status.error_message());
-            return shared::UpdateFromClient();
+            shared::UpdateFromClient err;
+            err.mutable_pos()->set_y(-1);
+            return err;
         }
     }
     shared::UpdateFromClient sanity_check() {

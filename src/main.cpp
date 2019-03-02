@@ -86,12 +86,7 @@ void server() {
     bool running_loop = true;
     game.game_loop(running_loop);
 
-    //std::cout << game.service.connections.at(0)->id << std::endl;
-    //std::cout << game.service.connections.at(0)->sanity_check().DebugString() << std::endl;
-
-    while (1) {
-        this_thread::sleep_for(chrono::seconds(1));
-    }
+    // TODO: start sending positions of all objects over asio to players
 }
 
 void client(const std::string &username, const std::string &server_ip) {
@@ -118,6 +113,8 @@ void client(const std::string &username, const std::string &server_ip) {
     Advertise ad(grpc::CreateChannel(server_ip + ":5000", grpc::InsecureChannelCredentials())); // TODO: read port from config json
     int id = ad.Register(username, selected_port);
     cout << "ID: " << id << endl;
+
+    // TODO: get positions of all other players and objects using asio to display them
 
     while (1) {
         this_thread::sleep_for(chrono::seconds(1));

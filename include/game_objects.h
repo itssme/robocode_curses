@@ -29,6 +29,7 @@ namespace GameObjects {
             this->height = height;
             this->width = width;
         }
+        virtual ~GameObject() {}
         virtual void tick()= 0;
     };
 
@@ -44,8 +45,9 @@ namespace GameObjects {
     class BasicRobot : public GameObject {
     public:
         double gun_degree;
+        double gun_speed;
         double energy;
-        Bullet shoot();
+        Bullet shoot(WINDOW* parent_window);
         void tick() override;
         bool check_collision(BasicRobot robot); // check if this robot has collided with the one provided
         bool check_collision(Bullet bullet);
@@ -59,10 +61,10 @@ namespace GameObjects {
     // extend BasicRobot and make it drawable
     class Robot : public BasicRobot {
     public:
-        drawable::Robot drawable_robot;
         void draw();
         void set_gun_rotation(double degrees) override;
         WINDOW *parent_window;
+        drawable::Robot drawable_robot;
         Robot(WINDOW *parent_window, drawable::Robot drawable_robot);
     };
 

@@ -13,30 +13,31 @@ GameObjects::BasicRobot::BasicRobot(double pos_height, double pos_width, double 
                                                                         speed_width, height, width) {
     this->energy = energy;
     this->gun_degree = gun_rotation;
+    this->gun_speed = 0;
 }
 
 GameObjects::Robot::Robot(WINDOW* parent_window, drawable::Robot drawable_robot) :
-        drawable_robot(drawable_robot), BasicRobot(drawable_robot.pos_height,drawable_robot.pos_width, 0, 0,
-                                                   100, 0, drawable_robot.height, drawable_robot.width) {
-    this->parent_window = parent_window;
-}
+        BasicRobot(drawable_robot.pos_height, drawable_robot.pos_width, 0, 0, 100, 0, drawable_robot.height,
+                   drawable_robot.width),
+        parent_window(parent_window),
+        drawable_robot(drawable_robot) {}
 
 void GameObjects::BasicRobot::tick() {
     this->pos_height += this->speed_height;
     this->pos_width += this->speed_width;
+    this->gun_degree += this->gun_speed;
 }
 
 bool GameObjects::BasicRobot::check_collision(BasicRobot robot) {
     return false;
 }
 
+GameObjects::Bullet GameObjects::BasicRobot::shoot(WINDOW* parent_window) {
+}
+
 bool GameObjects::BasicRobot::check_collision(Bullet bullet) {
     return bullet.pos_height >= this->pos_height && bullet.pos_height <= this->pos_height + this->height
            && bullet.pos_width >= this->pos_width && bullet.pos_width <= this->pos_width + this->width;
-}
-
-GameObjects::Bullet GameObjects::BasicRobot::shoot() {
-
 }
 
 void GameObjects::BasicRobot::set_speed(double speed_height, double speed_width) {

@@ -42,7 +42,7 @@ public:
 };
 
 
-class ClientImpl final: public shared::Client::Service {
+class ClientImpl final: public shared::Client::Service { // TODO: use bidirectional stream instead of this
 public:
     Player player;
     ClientImpl(Player player) : player(player) {}

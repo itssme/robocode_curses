@@ -32,6 +32,7 @@ Status ClientImpl::GetUpdate(grpc::ServerContext *context, const shared::UpdateF
     response->mutable_speed()->set_y(this->player.robot.speed_height);
     response->mutable_speed()->set_x(this->player.robot.speed_width);
     response->mutable_gun_pos()->set_degrees(this->player.robot.gun_degree);
+    response->mutable_gun_pos()->set_speed(this->player.robot.gun_speed);
 
     std::cout << "\nSENT:\n" << response->DebugString() << std::endl;
 

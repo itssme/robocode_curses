@@ -61,10 +61,6 @@ void Game::tick_all() {
             hit_wall.push_back(1);
         }
 
-        if (hit_wall.empty()) {
-            robots.at(i).set_speed(0, 0);
-        }
-
         // TODO: also check for robot collision
 
         // Bullet collision
@@ -86,8 +82,8 @@ void Game::tick_all() {
         shared::UpdateFromServer update;
 
         update.set_energy(static_cast<google::protobuf::int32>(robots.at(i).energy));
-        update.mutable_pos()->set_y(this->robots.at(0).pos_height);
-        update.mutable_pos()->set_x(this->robots.at(0).pos_width);
+        update.mutable_pos()->set_y(this->robots.at(i).pos_height);
+        update.mutable_pos()->set_x(this->robots.at(i).pos_width);
 
         // TODO:
         //update.add_hitrobot(0);
@@ -112,9 +108,16 @@ void Game::tick_all() {
 
         shared::UpdateFromClient update_client = messages.at(i);  // TODO: check if robot is still alive
 
+        // player has not sent an update -> using speed values of last update
+        // TODO: if player does not respond after 5 messages, declare connection lost
+        if (update_client.pos().y() == -1) {
+            this->robots.at(i).tick();
+            continue;
+        }
+
         // create bullet object if player shot
         if (update_client.shot()) {
-            this->bullets.push_back(this->robots.at(i).shoot());
+            this->bullets.push_back(this->robots.at(i).shoot(this->window));
         }
 
         // update position of player
@@ -126,6 +129,7 @@ void Game::tick_all() {
         this->robots.at(i).set_speed(update_client.speed().y(), update_client.speed().x());
 
         this->robots.at(i).set_gun_rotation(update_client.gun_pos().degrees());
+        this->robots.at(i).gun_speed = update_client.gun_pos().speed();
     }
 
     /*
@@ -173,9 +177,15 @@ void Game::draw_all() {
 }
 
 void Game::start() {
+    std::random_device rd;
+    std::mt19937 gen{rd()};
+    std::uniform_real_distribution<double> dis_y{5, (double) LINES - 5};
+    std::uniform_real_distribution<double> dis_x{5, (double) COLS - 5};
+
     for (unsigned int i = 0; i < this->service.connections.size(); i++) {
-        // TODO: create random position of robot
-        drawable::Robot robot_draw(this->window, 10, 10); // TODO: create drawable robot in Robot() constructor
+        drawable::Robot robot_draw(this->window,
+                                   static_cast<int>(dis_y(gen)),
+                                   static_cast<int>(dis_x(gen))); // TODO: create drawable robot in Robot() constructor
         GameObjects::Robot robot(this->window, robot_draw);
         this->robots.push_back(robot);
     }
