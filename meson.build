@@ -39,7 +39,7 @@ gen = generator(protoc, \
 internal_proto = gen.process('src/proto/messages.proto')
 
 inc_dir = include_directories('include')
-game = ['src/main.cpp', 'src/curses_drawable_objects.cpp', 'src/communication/client.cpp', 'src/communication/server.cpp', 'src/game_objects/bullet.cpp', 'src/game_objects/game.cpp', 'src/game_objects/robot.cpp', 'src/player_bots/example_bot.cpp', internal_proto]
+game = ['src/main.cpp', 'src/curses_drawable_objects.cpp', 'src/communication/client.cpp', 'src/communication/server.cpp', 'src/game_objects/bullet.cpp', 'src/game_objects/game.cpp', 'src/game_objects/robot.cpp', internal_proto]
 
 executable('robocode',
            sources : game,

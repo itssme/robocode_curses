@@ -18,4 +18,4 @@ Status ClientImpl::GetUpdate(grpc::ServerContext *context, const shared::UpdateF
     response->mutable_gun_pos()->set_degrees(45);
 
     return Status::OK;
-};
+}

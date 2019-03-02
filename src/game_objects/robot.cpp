@@ -11,6 +11,8 @@
 GameObjects::BasicRobot::BasicRobot(double pos_height, double pos_width, double speed_height, double speed_width,
                                     int energy, double gun_rotation, int height, int width) : GameObject(pos_height, pos_width, speed_height,
                                                                         speed_width, height, width) {
+    this->energy = energy;
+    this->gun_degree = gun_rotation;
 }
 
 GameObjects::Robot::Robot(WINDOW* parent_window, drawable::Robot drawable_robot) :

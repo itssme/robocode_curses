@@ -121,7 +121,7 @@ void Game::draw_all() {
 }
 
 void Game::start() {
-    for (int i = 0; i < this->service.connections.size(); i++) {
+    for (unsigned int i = 0; i < this->service.connections.size(); i++) {
         // TODO: create random position of robot
         drawable::Robot robot_draw(this->window, 5, 5); // TODO: create drawable robot in Robot() constructor
         GameObjects::Robot robot(this->window, robot_draw);

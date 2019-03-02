@@ -24,7 +24,9 @@ public:
     // 2 is top
     // 3 is right
     // 4 is down
-    virtual GameObjects::BasicRobot tick(std::vector<GameObjects::BasicRobot> scanned, std::vector<int> hit_wall) = 0;
+    GameObjects::BasicRobot tick(std::vector<GameObjects::BasicRobot> scanned, std::vector<int> hit_wall) {
+
+    };
 };
 
 #endif //ROBOCODE_PLAYER_H

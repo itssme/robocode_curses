@@ -21,7 +21,7 @@ WINDOW *create_newwin(int height, int width, int starty, int startx) {
     wrefresh(local_win);
 
     return local_win;
-};
+}
 
 struct Option {
 public:
@@ -65,7 +65,7 @@ struct OptionTextInput {
         this->window = derwin(parent_window, 1, this->length, begin_y, parent_window->_maxx/2 - this->length/2);
         this->title = title;
         waddstr(this->window, (this->title + " ").c_str());
-        this->text_window = derwin(this->window, 1, input_size, 0, title.size()+1);
+        this->text_window = derwin(this->window, 1, input_size, 0, static_cast<int>(title.size() + 1));
         wattron(this->text_window, A_UNDERLINE);
         for (int i = 0; i < input_size; ++i) {
             waddch(this->text_window, ' ');
@@ -93,7 +93,7 @@ struct OptionTextInput {
         for (auto ch: this->text) {
             waddch(this->text_window, ch);
         }
-        for (int i = 0; i < this->length - this->text.length(); ++i) {
+        for (unsigned int i = 0; i < this->length - this->text.length(); ++i) {
             waddch(this->text_window, ' ');
         }
     }
@@ -130,7 +130,7 @@ private:
     WINDOW* parent_window;
     std::string title;
 protected:
-    int at_option;
+    unsigned long int at_option;
     int height;
     int width;
     int pos_y;
@@ -165,7 +165,7 @@ public:
         mvwaddstr(this->window, 0, 1, title.c_str());
         this->title = title;
 
-        for (int i = 0; i < option_names.size(); ++i) {
+        for (unsigned long int i = 0; i < option_names.size(); ++i) {
             if (i+1 <= option_names.size() - input_options) {
                 this->options.emplace_back(Option(this->window, option_names.at(i),
                                                   static_cast<int>(option_names.at(i).size()) + 1,
@@ -295,7 +295,7 @@ public:
     void redraw() {
         this->options.clear();
 
-        for (int i = 0; i < this->text.size(); i++) {
+        for (unsigned long int i = 0; i < this->text.size(); i++) {
             this->options.emplace_back(Option(this->window, this->text.at(i),
                                               static_cast<int>(this->text.at(i).size()) + 1,
                                               static_cast<int>(window->_maxy / 2 - this->text.size() / 2 + i),

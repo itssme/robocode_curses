@@ -176,7 +176,7 @@ void background_robot() {
     }
 }
 
-int main(int argc, char* argv[]) {
+int main() {
     GOOGLE_PROTOBUF_VERIFY_VERSION;
 
     // create logger
