@@ -28,6 +28,7 @@ using namespace std;
 
 WINDOW* main_window;
 bool running{false};
+thread* t;
 mutex draw_mutex;
 
 void server() {
@@ -74,8 +75,20 @@ void server() {
         return;
     }
 
-    std::cout << game.service.connections.at(0)->id << std::endl;
-    std::cout << game.service.connections.at(0)->sanity_check().DebugString() << std::endl;
+    running = false;
+    t->join();
+
+    display_conns.erase();
+    display_conns.refresh_all();
+
+    game.start();
+
+    bool running_loop = true;
+    game.game_loop(running_loop);
+
+    //std::cout << game.service.connections.at(0)->id << std::endl;
+    //std::cout << game.service.connections.at(0)->sanity_check().DebugString() << std::endl;
+
     while (1) {
         this_thread::sleep_for(chrono::seconds(1));
     }
@@ -85,11 +98,11 @@ void client(const std::string &username, const std::string &server_ip) {
     cout << "CLIENT" << endl;
     cout << username << endl;
 
-    std::string server_address("0.0.0.0:0"); // ':0' will choose an random available port
+    std::string server_address("0.0.0.0:0"); // ':0' will choose a random available port
 
-    //GameObjects::BasicRobot robot(0, 0, 0, 0, 100, 0);
-    //Player player(robot);
-    ClientImpl service;
+    GameObjects::BasicRobot robot(-1, -1, 0, 0, 100, 0);
+    Player player(robot);
+    ClientImpl service(player);
 
     ServerBuilder builder;
     int selected_port = 0;
@@ -174,6 +187,9 @@ void background_robot() {
 
         this_thread::sleep_for(std::chrono::milliseconds(100));
     }
+
+    werase(robot.drawable_robot.window);
+    robot.drawable_robot.refresh();
 }
 
 int main() {
@@ -199,7 +215,7 @@ int main() {
     // window where the game will be played
     main_window = create_newwin(LINES, COLS, 0, 0);
     running = true;
-    thread t = thread(background_robot);
+    t = new thread(background_robot);
 
     bool stop = false;
     std::string username;
@@ -267,7 +283,7 @@ int main() {
 
                         // remove endwin and background robot stop
                         running = false;
-                        t.join();
+                        t->join();
                         endwin();
                         client(username, server_ip);
                         return 0;
@@ -300,7 +316,7 @@ int main() {
 
     if (running) {
         running = false;
-        t.join();
+        t->join();
     }
 
     endwin();

@@ -45,7 +45,7 @@ public:
         this->username = name;
         this->peer = peer;
     }
-    shared::UpdateFromClient send_message(const shared::UpdateFromServer &message) {
+    shared::UpdateFromClient send_message(shared::UpdateFromServer message) {
         shared::UpdateFromClient reply;
         grpc::ClientContext context;
 
@@ -54,7 +54,7 @@ public:
         if (status.ok()) {
             return reply;
         } else {
-            //std::cout << status.error_code() << ": " << status.error_message() << std::endl;
+            std::cout << status.error_code() << ": " << status.error_message() << std::endl;
             spdlog::error(status.error_code() + ": " + status.error_message());
             return shared::UpdateFromClient();
         }

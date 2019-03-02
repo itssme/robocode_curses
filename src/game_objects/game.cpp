@@ -35,7 +35,10 @@ void Game::game_loop(bool& running) {
 }
 
 void Game::tick_all() {
-    std::vector<std::tuple<int, std::future<shared::UpdateFromClient>>> updates;
+    std::vector<std::future<shared::UpdateFromClient>> updates;
+    std::vector<shared::UpdateFromClient> messages;
+
+    //messages.resize(robots.size());
     updates.resize(robots.size());
     for (unsigned int i = 0; i < this->robots.size(); i++) {
         if (robots.at(i).energy == 0) {
@@ -46,15 +49,15 @@ void Game::tick_all() {
 
         // Wall collision
         std::vector<int> hit_wall;
-        if (robots.at(i).pos_height >= LINES-(robots.at(i).drawable_robot.height+1)) {
+        if (robots.at(i).pos_height >= LINES -(robots.at(i).drawable_robot.height + 1)) {
             hit_wall.push_back(4);
-        } else if (robots.at(i).pos_height <= 2) {
+        } else if (robots.at(i).pos_height <= 1) {
             hit_wall.push_back(2);
         }
 
-        if (robots.at(i).pos_width >= COLS-(robots.at(i).drawable_robot.width+1)) {
+        if (robots.at(i).pos_width >= COLS -(robots.at(i).drawable_robot.width + 1)) {
             hit_wall.push_back(3);
-        } else if (robots.at(i).pos_width <= 2) {
+        } else if (robots.at(i).pos_width <= 1) {
             hit_wall.push_back(1);
         }
 
@@ -93,24 +96,71 @@ void Game::tick_all() {
             update.add_hitwall(hit);
         }
 
-        update.mutable_scanned_robot()->mutable_pos()->set_y(0);
-        update.mutable_scanned_robot()->mutable_pos()->set_x(0);
-        update.mutable_scanned_robot()->set_id(0);
-        update.mutable_scanned_robot()->set_energy_left(0);
+        //update.mutable_scanned_robot()->mutable_pos()->set_y(0);
+        //update.mutable_scanned_robot()->mutable_pos()->set_x(0);
+        //update.mutable_scanned_robot()->set_id(0);
+        //update.mutable_scanned_robot()->set_energy_left(0);
 
-        updates.emplace_back(i, std::async(std::launch::async, ([&]{
-            return this->service.connections.at(i)->send_message(update);
-        })));
+        //updates.push_back(std::async(std::launch::async, ([&]{
+        //    return this->service.connections.at(i)->send_message(update);
+        //})));
+        messages.push_back(this->service.connections.at(i)->send_message(update));
     }
 
-    for (auto &update : updates) {
-        shared::UpdateFromClient update_client = std::get<1>(update).get();
+    for (unsigned long int i = 0; i < messages.size(); ++i) {
+        //std::cout << messages.at(i).DebugString() << std::endl;
+
+        shared::UpdateFromClient update_client = messages.at(i);  // TODO: check if robot is still alive
+
+        // create bullet object if player shot
+        if (update_client.shot()) {
+            this->bullets.push_back(this->robots.at(i).shoot());
+        }
+
+        // update position of player
+        // TODO: check if last speed matches new position to avoid cheating
+        this->robots.at(i).set_pos(update_client.pos().y(), update_client.pos().x());
+
+        // update speed of player
+        // TODO: check if player is not above max speed (read max speed from config file)
+        this->robots.at(i).set_speed(update_client.speed().y(), update_client.speed().x());
+
+        this->robots.at(i).set_gun_rotation(update_client.gun_pos().degrees());
     }
 
-    // TODO: get the future object and update the robot object
+    /*
+    for (unsigned long int i = 0; i < updates.size(); ++i) {
+        //std::cout << "Update is: " << updates.at(i).valid() << std::endl;
+        while (! updates.at(i).valid()) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
+
+        shared::UpdateFromClient update_client = updates.at(i).get();  // TODO: check if robot is still alive
+
+        GameObjects::Robot* robot = &this->robots.at(i);
+
+        // create bullet object if player shot
+        if (update_client.shot()) {
+            this->bullets.push_back(this->robots.at(i).shoot());
+        }
+
+        // update position of player
+        // TODO: check if last speed matches new position to avoid cheating
+        this->robots.at(i).set_pos(update_client.pos().y(), update_client.pos().x());
+
+        // update speed of player
+        // TODO: check if player is not above max speed (read max speed from config file)
+        this->robots.at(i).set_speed(update_client.speed().y(), update_client.speed().x());
+
+        this->robots.at(i).set_gun_rotation(update_client.gun_pos().degrees());
+    }
+    */
 }
 
 void Game::draw_all() {
+    werase(this->window);
+    box(this->window, 0 , 0);
+
     for (auto robot: this->robots) {
         robot.draw();
     }
@@ -118,12 +168,14 @@ void Game::draw_all() {
     for (auto bullet: this->bullets) {
         bullet.draw();
     }
+
+    wrefresh(this->window);
 }
 
 void Game::start() {
     for (unsigned int i = 0; i < this->service.connections.size(); i++) {
         // TODO: create random position of robot
-        drawable::Robot robot_draw(this->window, 5, 5); // TODO: create drawable robot in Robot() constructor
+        drawable::Robot robot_draw(this->window, 10, 10); // TODO: create drawable robot in Robot() constructor
         GameObjects::Robot robot(this->window, robot_draw);
         this->robots.push_back(robot);
     }

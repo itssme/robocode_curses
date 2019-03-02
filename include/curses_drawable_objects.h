@@ -31,7 +31,7 @@ namespace drawable {
         Robot(WINDOW *parent_window, int begin_height, int begin_width, int width = 4, int height = 7);
         void set_gun_rotation(float new_rotation);
         void draw_gun();
-        void draw(bool remove_old= true);
+        void draw();
         void refresh();
     };
 

@@ -44,8 +44,8 @@ public:
 
 class ClientImpl final: public shared::Client::Service {
 public:
-    //Player player;
-    //ClientImpl(Player player) : player(player) {}
+    Player player;
+    ClientImpl(Player player) : player(player) {}
     Status GetUpdate(grpc::ServerContext *context, const shared::UpdateFromServer *msg, shared::UpdateFromClient *response) override;
 };
 

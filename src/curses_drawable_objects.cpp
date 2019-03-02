@@ -57,11 +57,9 @@ void drawable::Robot::draw_gun() {
     wrefresh(this->parent_window);
 }
 
-void drawable::Robot::draw(bool remove_old) {
+void drawable::Robot::draw() {
     werase(this->window);
-    if (remove_old) {
-        this->refresh();
-    }
+    this->refresh();
     this->window = derwin(parent_window, this->height, this->width, pos_height, pos_width);
     box(this->window, 0, 0);
     draw_gun();

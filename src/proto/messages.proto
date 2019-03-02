@@ -23,7 +23,7 @@ message Register {
 }
 
 message GunPosition {
-    int32 degrees = 1;
+    double degrees = 1;
 }
 
 message Robot {
