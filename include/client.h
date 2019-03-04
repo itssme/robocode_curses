@@ -14,6 +14,11 @@
 #include <messages.pb.h>
 #include <messages.grpc.pb.h>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wsign-conversion"
+#include "spdlog/spdlog.h"
+#include "spdlog/sinks/basic_file_sink.h"
+#pragma GCC diagnostic pop
 
 using grpc::Status;
 

@@ -38,7 +38,7 @@ namespace drawable {
     class Bullet : public DrawableObject {
     public:
         Bullet(WINDOW *parent_window, int begin_height, int begin_width, int width = 1, int height = 1);
-        void draw(bool remove_old= true);
+        void draw();
         void refresh();
     };
 }

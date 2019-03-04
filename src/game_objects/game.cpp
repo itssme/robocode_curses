@@ -30,7 +30,7 @@ void Game::game_loop(bool& running) {
         this->draw_all();
 
         auto end = std::chrono::steady_clock::now();
-        std::this_thread::sleep_for(std::chrono::milliseconds(100)-(end-start));  // TODO: catch if loop took too long
+        std::this_thread::sleep_for(std::chrono::milliseconds(100)-(end-start));
     }
 }
 
@@ -65,14 +65,16 @@ void Game::tick_all() {
 
         // Bullet collision
         std::vector<GameObjects::Bullet> survived_bullets;
-        for (const auto &bullet: this->bullets) {
-            if (robots.at(i).check_collision(bullet)) {
+        for (auto &bullet: this->bullets) {
+            if (robots.at(i).check_collision(bullet) && ! robots.at(i).id == bullet.created_by) {
+                std::cout << "HIT" << std::endl;
                 robots.at(i).energy -= 20;
-                if (robots.at(i).energy > 0) {
+                if (robots.at(i).energy < 0) {
                     robots.at(i).energy = 0;
                 }
             } else if (! (bullet.pos_width >= COLS || bullet.pos_height >= LINES ||
                           bullet.pos_height <= 0 || bullet.pos_width <= 0)) {
+                bullet.tick();
                 survived_bullets.push_back(bullet);
             }
         }
@@ -165,12 +167,12 @@ void Game::draw_all() {
     werase(this->window);
     box(this->window, 0 , 0);
 
-    for (auto robot: this->robots) {
-        robot.draw();
-    }
-
     for (auto bullet: this->bullets) {
         bullet.draw();
+    }
+
+    for (auto robot: this->robots) {
+        robot.draw();
     }
 
     wrefresh(this->window);
@@ -186,7 +188,7 @@ void Game::start() {
         drawable::Robot robot_draw(this->window,
                                    static_cast<int>(dis_y(gen)),
                                    static_cast<int>(dis_x(gen))); // TODO: create drawable robot in Robot() constructor
-        GameObjects::Robot robot(this->window, robot_draw);
+        GameObjects::Robot robot(this->window, robot_draw, this->service.connections.at(i)->id);
         this->robots.push_back(robot);
     }
 }

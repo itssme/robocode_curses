@@ -20,6 +20,7 @@ public:
     explicit Player(GameObjects::BasicRobot robot) : robot(std::move(robot)) {};
 
     int at_wall = -1;
+    int shoot = 20;
 
     // hitWall:
     // 1 is left
@@ -29,6 +30,17 @@ public:
     // return true if robot should shoot
     bool tick(GameObjects::BasicRobot* scanned, std::vector<int> hit_wall) {
         this->robot.gun_degree += 10;
+        this->robot.gun_degree = std::fmod(this->robot.gun_degree, 360);
+        this->robot.gun_speed = 10;
+
+        bool shot = false;
+
+        if (shoot == 0) {
+            shoot = 10;
+            shot = true;
+        } else {
+            shoot -= 1;
+        }
 
         // find first wall
         if (at_wall == -1) {
@@ -39,7 +51,7 @@ public:
 
                 this->robot.set_speed(0, -1);
             }
-            return false;
+            return shot;
         }
 
         if (! hit_wall.empty()) {
@@ -72,7 +84,7 @@ public:
             std::cout << "scanned a robot" << std::endl;
         }
 
-        return false;
+        return shot;
     };
 };
 

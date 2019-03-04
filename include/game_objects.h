@@ -39,7 +39,8 @@ namespace GameObjects {
         void draw();
         void tick() override;
         WINDOW *parent_window;
-        Bullet(WINDOW *parent_window, double pos_height, double pos_width, double speed_height, double speed_width);
+        int created_by;
+        Bullet(WINDOW *parent_window, double pos_height, double pos_width, double speed_height, double speed_width, int created_by = -1);
     };
 
     class BasicRobot : public GameObject {
@@ -54,8 +55,9 @@ namespace GameObjects {
         void set_speed(double speed_height, double speed_width);
         void set_pos(double pos_height, double pos_width);
         virtual void set_gun_rotation(double degrees);
+        int id;
         BasicRobot(double pos_height, double pos_width, double speed_height,double speed_width,
-                   int energy, double gun_rotation, int width = 4, int height = 7);
+                   int energy, double gun_rotation, int width = 4, int height = 7, int id = -1);
     };
 
     // extend BasicRobot and make it drawable
@@ -65,7 +67,8 @@ namespace GameObjects {
         void set_gun_rotation(double degrees) override;
         WINDOW *parent_window;
         drawable::Robot drawable_robot;
-        Robot(WINDOW *parent_window, drawable::Robot drawable_robot);
+        int id;
+        Robot(WINDOW *parent_window, drawable::Robot drawable_robot, int id = -1);
     };
 
 }

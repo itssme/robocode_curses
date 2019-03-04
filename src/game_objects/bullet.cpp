@@ -8,13 +8,14 @@
 
 #include "game_objects.h"
 
-GameObjects::Bullet::Bullet(WINDOW *parent_window, double pos_height, double pos_width, double speed_height, double speed_width) :
+GameObjects::Bullet::Bullet(WINDOW *parent_window, double pos_height, double pos_width, double speed_height, double speed_width, int created_by) :
         GameObject(pos_height, pos_width, speed_height, speed_width, 1, 1), drawable_bullet(parent_window,
                                                                                       static_cast<int>(pos_height),
                                                                                       static_cast<int>(pos_width), 2, 2) {
     this->parent_window = parent_window;
     this->speed_height = speed_height;
     this->speed_width = speed_width;
+    this->created_by = created_by;
 }
 
 void GameObjects::Bullet::tick() {

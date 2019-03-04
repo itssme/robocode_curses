@@ -82,11 +82,9 @@ drawable::Bullet::Bullet(WINDOW *parent_window, int begin_height, int begin_widt
     this->refresh();
 }
 
-void drawable::Bullet::draw(bool remove_old) {
+void drawable::Bullet::draw() {
     werase(this->window);
-    if (remove_old) {
-        this->refresh();
-    }
+    this->refresh();
     this->window = derwin(parent_window, this->height, this->width, pos_height, pos_width);
     box(this->window, 0, 0);
     this->refresh();

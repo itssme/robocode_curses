@@ -13,6 +13,7 @@ Status ClientImpl::GetUpdate(grpc::ServerContext *context, const shared::UpdateF
 
     this->player.robot.pos_height = msg->pos().y();
     this->player.robot.pos_width = msg->pos().x();
+    this->player.robot.energy = msg->energy();
 
     GameObjects::BasicRobot* robot = nullptr;
     if (msg->has_scanned_robot()) {
