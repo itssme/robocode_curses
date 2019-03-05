@@ -330,6 +330,12 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 # SPDLOG
 include_directories("/home/joel/Documents/school/nvs_5te_klasse/inclue_libs/spdlog/include")
 
+# JSON
+include_directories("/home/joel/Documents/school/nvs_5te_klasse/inclue_libs/json")
+
+# CLIPP
+include_directories("/home/joel/Documents/school/nvs_5te_klasse/inclue_libs/clipp/include")
+
 # TODO: set env variables
 #include_directories($ENV{ASIO_INCLUDE_PATH})
 #include_directories($ENV{SPDLOG_INCLUDE_PATH})

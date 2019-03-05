@@ -15,6 +15,9 @@
 #include "spdlog/sinks/basic_file_sink.h"
 #pragma GCC diagnostic pop
 
+#include "json.hpp"
+#include "clipp.h"
+
 #include "curses_utils.h"
 #include "curses_drawable_objects.h"
 #include "game_objects.h"
@@ -24,6 +27,7 @@
 #include "player.h"
 #define OK      (0)
 
+using namespace clipp;
 using namespace std;
 
 WINDOW* main_window;
@@ -31,9 +35,12 @@ bool running{false};
 thread* t;
 mutex draw_mutex;
 
+int port{5000};
+bool dont_display_background_robot{false};
+
 void server() {
     spdlog::info("in server");
-    std::string server_address("0.0.0.0:5000"); // TODO: read port from config json file
+    std::string server_address("0.0.0.0:" + std::to_string(port)); // TODO: read port from config json file
 
     Game game(main_window, server_address);
 
@@ -110,7 +117,7 @@ void client(const std::string &username, const std::string &server_ip) {
         server->Wait();
     });
 
-    Advertise ad(grpc::CreateChannel(server_ip + ":5000", grpc::InsecureChannelCredentials())); // TODO: read port from config json
+    Advertise ad(grpc::CreateChannel(server_ip + ":" + std::to_string(port), grpc::InsecureChannelCredentials())); // TODO: read port from config json
     int id = ad.Register(username, selected_port);
     cout << "ID: " << id << endl;
 
@@ -122,6 +129,10 @@ void client(const std::string &username, const std::string &server_ip) {
 }
 
 void background_robot() {
+    if (dont_display_background_robot) {
+        return;
+    }
+
     drawable::Robot draw_rob(main_window, 6, 6);
     GameObjects::Robot robot(main_window, draw_rob);
 
@@ -193,7 +204,7 @@ void background_robot() {
     robot.drawable_robot.refresh();
 }
 
-int main() {
+int main(int argc, char *argv[]) {
     GOOGLE_PROTOBUF_VERIFY_VERSION;
 
     // create logger
@@ -206,6 +217,18 @@ int main() {
     }
 
     spdlog::info("started");
+
+    bool help = false;
+    bool port_set = false;
+
+    auto cli = (option("-h", "--help").set(help).doc("show this help"),
+            option("-b").set(dont_display_background_robot).doc("if set background robot will not be displayed"),
+            option("-p", "--port").set(port_set).doc("set port for the server") & value("port", port));
+
+    if (!parse(argc, argv, cli) || help) {
+        cout << make_man_page(cli, argv[0]);
+        exit(0);
+    }
 
     initscr();
     cbreak();
