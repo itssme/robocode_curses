@@ -140,6 +140,10 @@ void background_robot() {
 
     robot.set_speed(1, 1);
     robot.set_pos(dis_y(gen), dis_x(gen));
+    while (robot.pos_width - 1 < pos_width_obstacle + width_obstacle && robot.pos_width + robot.drawable_robot.width + 1 > pos_width_obstacle &&
+              robot.pos_height - 1 < pos_height_obstacle + height_obstacle && robot.pos_height + robot.drawable_robot.height + 1 > pos_height_obstacle ) {
+        robot.set_pos(dis_y(gen), dis_x(gen));
+    }
 
     while (running) {
         robot.tick();
