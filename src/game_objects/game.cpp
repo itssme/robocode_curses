@@ -188,7 +188,6 @@ void Game::tick_all() {
         // player has not sent an update -> using speed values of last update
         // TODO: if player does not respond after 5 messages, declare connection lost
         if (update_client.pos().y() == -1) {
-            this->robots.at(i).tick();
             continue;
         }
 

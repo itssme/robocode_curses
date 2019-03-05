@@ -97,6 +97,11 @@ void server() {
 }
 
 void client(const std::string &username, const std::string &server_ip) {
+    // TODO: remove later
+    running = false;
+    t->join();
+    endwin();
+
     cout << "CLIENT" << endl;
     cout << username << endl;
 
@@ -132,6 +137,8 @@ void background_robot() {
     if (dont_display_background_robot) {
         return;
     }
+
+    this_thread::sleep_for(chrono::milliseconds(10));
 
     drawable::Robot draw_rob(main_window, 6, 6);
     GameObjects::Robot robot(main_window, draw_rob);
@@ -220,10 +227,17 @@ int main(int argc, char *argv[]) {
 
     bool help = false;
     bool port_set = false;
+    bool no_menu_host = false;
+    bool connect = false;
+    string server_ip{};
+    string username{};
 
     auto cli = (option("-h", "--help").set(help).doc("show this help"),
             option("-b").set(dont_display_background_robot).doc("if set background robot will not be displayed"),
-            option("-p", "--port").set(port_set).doc("set port for the server") & value("port", port));
+            option("-p", "--port").set(port_set).doc("set port for the server") & value("port", port),
+            option("-nmh", "--no-menu-host").set(no_menu_host).doc("don't display menu and host game"),
+            option("-c", "--connect").set(connect).doc("connect directly to a game without menu") &
+            value("ip", server_ip) & value("username", username));
 
     if (!parse(argc, argv, cli) || help) {
         cout << make_man_page(cli, argv[0]);
@@ -242,8 +256,14 @@ int main(int argc, char *argv[]) {
     t = new thread(background_robot);
 
     bool stop = false;
-    std::string username;
-    std::string server_ip;
+
+    if (no_menu_host) {
+        server();
+        stop = true;
+    } else if (connect) {
+        client(username, server_ip);
+        stop = true;
+    }
 
     while (! stop) {
         int main_choice;
@@ -304,13 +324,8 @@ int main(int argc, char *argv[]) {
 
                     if (username_menu.evaluate_choice() != 0) {
                         username = username_menu.evaluate();
-
-                        // remove endwin and background robot stop
-                        running = false;
-                        t->join();
-                        endwin();
                         client(username, server_ip);
-                        return 0;
+                        stop = true;
                     }
                 }
 
