@@ -79,7 +79,6 @@ void Game::tick_all() {
                 survived_bullets.push_back(bullet);
             }
         }
-
         this->bullets = survived_bullets;
 
         shared::UpdateFromServer update;
@@ -95,10 +94,49 @@ void Game::tick_all() {
             update.add_hitwall(hit);
         }
 
-        //update.mutable_scanned_robot()->mutable_pos()->set_y(0);
-        //update.mutable_scanned_robot()->mutable_pos()->set_x(0);
-        //update.mutable_scanned_robot()->set_id(0);
-        //update.mutable_scanned_robot()->set_energy_left(0);
+        for (const auto &robot_scan: this->robots) {
+            if (robot_scan.id == this->robots.at(i).id) {
+                continue;
+            }
+
+            auto nx = cos((std::fmod(this->robots.at(i).gun_degree, 360)*M_PI)/180);
+            auto ny = sin((std::fmod(this->robots.at(i).gun_degree, 360)*M_PI)/180);
+
+            auto px = this->robots.at(i).pos_width;
+            auto py = this->robots.at(i).pos_height;
+
+            auto rx = robot_scan.pos_width;
+            auto ry = robot_scan.pos_height;
+            auto rw = robot_scan.width;
+            auto rh = robot_scan.height;
+
+            auto upper_limit_x = (rx - px) / nx;
+            auto upper_limit_y =  (ry - py) / ny;
+            auto lower_limit_x = (rx + rw - px) / nx;
+            auto lower_limit_y  = (ry + rh - py) / ny;
+
+            if (nx >= 0) {
+                auto temp = upper_limit_x;
+                upper_limit_x = lower_limit_x;
+                lower_limit_x = temp;
+            }
+
+            if (ny >= 0) {
+                auto temp = upper_limit_y;
+                upper_limit_y = lower_limit_y;
+                lower_limit_y = temp;
+            }
+
+            auto max_alpha = std::min(upper_limit_x, upper_limit_y);
+            auto min_alpha = std::max(lower_limit_x, lower_limit_y);
+
+            if (min_alpha <= max_alpha && min_alpha > 0 && max_alpha > 0) {
+                update.mutable_scanned_robot()->mutable_pos()->set_y(robot_scan.height);
+                update.mutable_scanned_robot()->mutable_pos()->set_x(robot_scan.width);
+                update.mutable_scanned_robot()->set_id(robot_scan.id);
+                update.mutable_scanned_robot()->set_energy_left(robot_scan.energy);
+            }
+        }
 
         //updates.push_back(std::async(std::launch::async, ([&]{
         //    return this->service.connections.at(i)->send_message(update);

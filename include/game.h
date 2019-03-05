@@ -14,6 +14,7 @@
 #include <chrono>
 #include <thread>
 #include <random>
+#include <algorithm>
 
 #include "game_objects.h"
 #include "spdlog/spdlog.h"

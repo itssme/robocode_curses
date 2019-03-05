@@ -29,18 +29,14 @@ public:
     // 4 is down
     // return true if robot should shoot
     bool tick(GameObjects::BasicRobot* scanned, std::vector<int> hit_wall) {
-        this->robot.gun_degree += 10;
-        this->robot.gun_degree = std::fmod(this->robot.gun_degree, 360);
-        this->robot.gun_speed = 10;
-
         bool shot = false;
 
-        if (shoot == 0) {
-            shoot = 2;
-            shot = true;
-        } else {
-            shoot -= 1;
-        }
+        //if (shoot == 0) {
+        //    shoot = 2;
+        //    shot = true;
+        //} else {
+        //    shoot -= 1;
+        //}
 
         // find first wall
         if (at_wall == -1) {
@@ -82,7 +78,12 @@ public:
 
         if (scanned != nullptr) {
             std::cout << "scanned a robot" << std::endl;
+            shot = true;
         }
+
+        this->robot.gun_degree += 10;
+        this->robot.gun_degree = std::fmod(this->robot.gun_degree, 360);
+        this->robot.gun_speed = 10;
 
         return shot;
     };
