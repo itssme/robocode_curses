@@ -34,6 +34,7 @@ public:
     Game(WINDOW* window, std::string server_address);
     void start();
     void game_loop(bool& running);
+    void tick_modify(int tick_modify);
     void tick_all();
     void draw_all();
     void shutdown_server();

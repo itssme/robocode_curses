@@ -25,13 +25,49 @@ Game::Game(WINDOW *window, std::string server_address) {
 void Game::game_loop(bool& running) {
     while (running) {
         auto start = std::chrono::steady_clock::now();
-
         this->tick_all();
         this->draw_all();
+
+        int modify_tick = 4;
+        for (int i = 0; i < modify_tick; ++i) {
+            auto start_mod_tick= std::chrono::steady_clock::now();
+
+            this->tick_modify(modify_tick);
+
+            /* // TODO: test this
+            for (auto bullet: this->bullets) {
+                bullet.draw();
+            }
+             */
+
+            this->draw_all();
+
+            auto end_mod_tick = std::chrono::steady_clock::now();
+            std::this_thread::sleep_for(std::chrono::milliseconds(100/modify_tick)-(end_mod_tick-start_mod_tick));
+        }
 
         auto end = std::chrono::steady_clock::now();
         std::this_thread::sleep_for(std::chrono::milliseconds(100)-(end-start));
     }
+}
+
+void Game::tick_modify(int tick_modifier) {
+    for (unsigned int i = 0; i < this->bullets.size(); i++) {
+        this->bullets.at(i).pos_height += this->bullets.at(i).speed_height / tick_modifier;
+        this->bullets.at(i).pos_width += this->bullets.at(i).speed_width / tick_modifier;
+    }
+
+    /*
+    for (unsigned int i = 0; i < this->robots.size(); i++) {
+        if (robots.at(i).energy <= 0) {
+            continue;
+        }
+
+        this->robots.at(i).pos_height += this->robots.at(i).speed_height / tick_modifier;
+        this->robots.at(i).pos_width += this->robots.at(i).speed_width / tick_modifier;
+        this->robots.at(i).set_gun_rotation(this->robots.at(i).gun_degree + (this->robots.at(i).gun_speed / tick_modifier));
+    }
+     */
 }
 
 void Game::tick_all() {
@@ -75,7 +111,7 @@ void Game::tick_all() {
                 }
             } else if (! (bullet.pos_width >= COLS || bullet.pos_height >= LINES ||
                           bullet.pos_height <= 0 || bullet.pos_width <= 0)) {
-                bullet.tick();
+                //bullet.tick();
                 survived_bullets.push_back(bullet);
             }
         }
