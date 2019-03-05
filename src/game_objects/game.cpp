@@ -41,7 +41,7 @@ void Game::tick_all() {
     //messages.resize(robots.size());
     updates.resize(robots.size());
     for (unsigned int i = 0; i < this->robots.size(); i++) {
-        if (robots.at(i).energy == 0) {
+        if (robots.at(i).energy <= 0) {
             continue;
         }
 
@@ -66,11 +66,12 @@ void Game::tick_all() {
         // Bullet collision
         std::vector<GameObjects::Bullet> survived_bullets;
         for (auto &bullet: this->bullets) {
-            if (robots.at(i).check_collision(bullet) && ! robots.at(i).id == bullet.created_by) {
-                std::cout << "HIT" << std::endl;
+            if (robots.at(i).check_collision(bullet) && robots.at(i).id != bullet.created_by) {
+                spdlog::debug("HIT BECAUSE CHECK COLLISION IS: {} AND ID ROBOT: {} AND ID BULLET: {}",
+                              robots.at(i).check_collision(bullet), robots.at(i).id, bullet.created_by);
                 robots.at(i).energy -= 20;
-                if (robots.at(i).energy < 0) {
-                    robots.at(i).energy = 0;
+                if (robots.at(i).energy <= 0) {
+                    robots.at(i).energy = -1;
                 }
             } else if (! (bullet.pos_width >= COLS || bullet.pos_height >= LINES ||
                           bullet.pos_height <= 0 || bullet.pos_width <= 0)) {
@@ -179,6 +180,8 @@ void Game::draw_all() {
 }
 
 void Game::start() {
+    this->robots.reserve(this->service.connections.size());
+
     std::random_device rd;
     std::mt19937 gen{rd()};
     std::uniform_real_distribution<double> dis_y{5, (double) LINES - 5};
@@ -189,6 +192,7 @@ void Game::start() {
                                    static_cast<int>(dis_y(gen)),
                                    static_cast<int>(dis_x(gen))); // TODO: create drawable robot in Robot() constructor
         GameObjects::Robot robot(this->window, robot_draw, this->service.connections.at(i)->id);
+        robot.energy = 100;
         this->robots.push_back(robot);
     }
 }

@@ -15,6 +15,10 @@ Status ClientImpl::GetUpdate(grpc::ServerContext *context, const shared::UpdateF
     this->player.robot.pos_width = msg->pos().x();
     this->player.robot.energy = msg->energy();
 
+    if (this->player.robot.energy <= 0) {
+        std::cout << "dead" << std::endl;
+    }
+
     GameObjects::BasicRobot* robot = nullptr;
     if (msg->has_scanned_robot()) {
         robot = new GameObjects::BasicRobot(msg->scanned_robot().pos().y(), msg->scanned_robot().pos().x(), 0, 0,

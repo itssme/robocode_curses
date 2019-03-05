@@ -43,6 +43,10 @@ GameObjects::Bullet GameObjects::BasicRobot::shoot(WINDOW* parent_window) {
 }
 
 bool GameObjects::BasicRobot::check_collision(Bullet bullet) {
+    //std::cout << "\nChecking for: " << this->id << " and bullet has " << bullet.created_by << std::endl;
+    //std::cout << bullet.pos_height << " >= " << this->pos_height << "&&" <<  bullet.pos_height << "<=" << this->pos_height << "+" << this->height << std::endl;
+    //std::cout << bullet.pos_width << ">=" << this->pos_width << "&&" << bullet.pos_width << "<=" << this->pos_width << "+" << this->width << std::endl;
+
     return bullet.pos_height >= this->pos_height && bullet.pos_height <= this->pos_height + this->height
            && bullet.pos_width >= this->pos_width && bullet.pos_width <= this->pos_width + this->width;
 }

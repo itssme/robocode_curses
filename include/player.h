@@ -36,7 +36,7 @@ public:
         bool shot = false;
 
         if (shoot == 0) {
-            shoot = 10;
+            shoot = 2;
             shot = true;
         } else {
             shoot -= 1;

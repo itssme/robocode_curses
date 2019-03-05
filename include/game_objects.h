@@ -11,6 +11,13 @@
 #include <cmath>
 #include "curses_drawable_objects.h"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wsign-conversion"
+#include "spdlog/spdlog.h"
+#include "spdlog/sinks/basic_file_sink.h"
+#pragma GCC diagnostic pop
+
+
 namespace GameObjects {
 
     class GameObject {
@@ -67,7 +74,6 @@ namespace GameObjects {
         void set_gun_rotation(double degrees) override;
         WINDOW *parent_window;
         drawable::Robot drawable_robot;
-        int id;
         Robot(WINDOW *parent_window, drawable::Robot drawable_robot, int id = -1);
     };
 
