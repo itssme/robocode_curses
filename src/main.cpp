@@ -94,6 +94,9 @@ void server() {
     bool running_loop = true;
     game.game_loop(running_loop);
 
+    box(main_window, 0 , 0);
+    wrefresh(main_window);
+
     // TODO: start sending positions of all objects over asio to players
 }
 

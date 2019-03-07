@@ -23,16 +23,15 @@ Game::Game(WINDOW *window, std::string server_address) {
 }
 
 void Game::game_loop(bool& running) {
-    while (running) {
+    while (this->robots.size() > 1 && running) {
         auto start = std::chrono::steady_clock::now();
         this->tick_all();
         this->draw_all();
 
-        int modify_tick = 4;
-        for (int i = 0; i < modify_tick; ++i) {
+        for (int i = 0; i < MODIFY_TICK; ++i) {
             auto start_mod_tick= std::chrono::steady_clock::now();
 
-            this->tick_modify(modify_tick);
+            this->tick_modify(MODIFY_TICK);
 
             /* // TODO: test this
             for (auto bullet: this->bullets) {
@@ -43,12 +42,16 @@ void Game::game_loop(bool& running) {
             this->draw_all();
 
             auto end_mod_tick = std::chrono::steady_clock::now();
-            std::this_thread::sleep_for(std::chrono::milliseconds(100/modify_tick)-(end_mod_tick-start_mod_tick));
+            std::this_thread::sleep_for(std::chrono::milliseconds(TICK/MODIFY_TICK)-(end_mod_tick-start_mod_tick));
         }
 
+        this->ticks += 1;
+
         auto end = std::chrono::steady_clock::now();
-        std::this_thread::sleep_for(std::chrono::milliseconds(100)-(end-start));
+        std::this_thread::sleep_for(std::chrono::milliseconds(TICK)-(end-start));
     }
+
+    this->cleanup();
 }
 
 void Game::tick_modify(int tick_modifier) {
@@ -72,7 +75,7 @@ void Game::tick_modify(int tick_modifier) {
 
 void Game::tick_all() {
     std::vector<std::future<shared::UpdateFromClient>> updates;
-    std::vector<shared::UpdateFromClient> messages;
+    std::vector<std::tuple<unsigned long int, shared::UpdateFromClient>> messages;
 
     //messages.resize(robots.size());
     updates.resize(robots.size());
@@ -122,9 +125,6 @@ void Game::tick_all() {
         update.set_energy(static_cast<google::protobuf::int32>(robots.at(i).energy));
         update.mutable_pos()->set_y(this->robots.at(i).pos_height);
         update.mutable_pos()->set_x(this->robots.at(i).pos_width);
-
-        // TODO:
-        //update.add_hitrobot(0);
 
         for (auto hit: hit_wall) {
             update.add_hitwall(hit);
@@ -177,13 +177,14 @@ void Game::tick_all() {
         //updates.push_back(std::async(std::launch::async, ([&]{
         //    return this->service.connections.at(i)->send_message(update);
         //})));
-        messages.push_back(this->service.connections.at(i)->send_message(update));
+
+        messages.emplace_back(i, this->service.connections.at(this->get_connection_from_robot(robots.at(i).id))->send_message(update));
     }
 
     for (unsigned long int i = 0; i < messages.size(); ++i) {
         //std::cout << messages.at(i).DebugString() << std::endl;
 
-        shared::UpdateFromClient update_client = messages.at(i);  // TODO: check if robot is still alive
+        shared::UpdateFromClient update_client = std::get<1>(messages.at(i));
 
         // player has not sent an update -> using speed values of last update
         // TODO: if player does not respond after 5 messages, declare connection lost
@@ -191,22 +192,40 @@ void Game::tick_all() {
             continue;
         }
 
+        unsigned long int robot_index = std::get<0>(messages.at(i));
+
+        if (this->robots.at(robot_index).energy <= 0) {
+            this->game_results.emplace_back(this->robots.at(robot_index).id,
+                                            this->service.connections.at(this->get_connection_from_robot(this->robots.at(robot_index).id))->username,
+                                            ticks);
+        }
+
         // create bullet object if player shot
         if (update_client.shot()) {
-            this->bullets.push_back(this->robots.at(i).shoot(this->window));
+            this->bullets.push_back(this->robots.at(robot_index).shoot(this->window));
         }
 
         // update position of player
         // TODO: check if last speed matches new position to avoid cheating
-        this->robots.at(i).set_pos(update_client.pos().y(), update_client.pos().x());
+        this->robots.at(robot_index).set_pos(update_client.pos().y(), update_client.pos().x());
 
         // update speed of player
         // TODO: check if player is not above max speed (read max speed from config file)
-        this->robots.at(i).set_speed(update_client.speed().y(), update_client.speed().x());
+        this->robots.at(robot_index).set_speed(update_client.speed().y(), update_client.speed().x());
 
-        this->robots.at(i).set_gun_rotation(update_client.gun_pos().degrees());
-        this->robots.at(i).gun_speed = update_client.gun_pos().speed();
+        this->robots.at(robot_index).set_gun_rotation(update_client.gun_pos().degrees());
+        this->robots.at(robot_index).gun_speed = update_client.gun_pos().speed();
     }
+
+    std::vector<GameObjects::Robot> new_robots;
+
+    for (unsigned int i = 0; i < this->robots.size(); i++) {
+        if (this->robots.at(i).energy > 0) {
+            new_robots.push_back(this->robots.at(i));
+        }
+    }
+
+    this->robots = new_robots;
 
     /*
     for (unsigned long int i = 0; i < updates.size(); ++i) {
@@ -265,12 +284,39 @@ void Game::start() {
                                    static_cast<int>(dis_y(gen)),
                                    static_cast<int>(dis_x(gen))); // TODO: create drawable robot in Robot() constructor
         GameObjects::Robot robot(this->window, robot_draw, this->service.connections.at(i)->id);
-        robot.energy = 100;
+        robot.energy = 20;
         this->robots.push_back(robot);
     }
+}
+
+unsigned long int Game::get_connection_from_robot(int robot_id) {
+    for (unsigned long int i = 0; i <= this->service.connections.size(); i++) {
+        if (this->service.connections.at(i)->id == robot_id) {
+            return i;
+        }
+    }
+    return static_cast<unsigned long>(-1);
+}
+
+unsigned long int Game::get_robot_from_connection(int connection_index) {
+    for (unsigned long int i = 0; i <= this->robots.size(); i++) {
+        if (this->robots.at(i).id == connection_index) {
+            return i;
+        }
+    }
+    return static_cast<unsigned long>(-1);
+}
+
+std::vector<std::tuple<int, std::string, double>> Game::get_results() {
+    return this->game_results;
 }
 
 void Game::shutdown_server() {
     // TODO: send stop message to peers
     this->server->Shutdown();
+}
+
+void Game::cleanup() {
+    werase(this->window);
+    wrefresh(this->window);
 }

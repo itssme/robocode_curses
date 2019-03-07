@@ -22,12 +22,21 @@
 #include "server.h"
 #define OK      (0)
 
+#define TICK 100
+#define MODIFY_TICK 2
+
 class Game {
 private:
     WINDOW* window;
     std::vector<GameObjects::Bullet> bullets;
     std::vector<GameObjects::Robot> robots;
     std::unique_ptr<Server> server;
+    int ticks;
+    std::vector<std::tuple<int, std::string, double>> game_results;
+    unsigned long int get_connection_from_robot(int robot_index);
+    unsigned long int get_robot_from_connection(int connection_index);
+    std::vector<std::tuple<int, std::string, double>> get_results();
+    void cleanup();
 public:
     ServerImpl service;
     std::thread* server_thread;
