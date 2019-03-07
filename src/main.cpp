@@ -28,6 +28,7 @@
 #define OK      (0)
 
 using namespace clipp;
+using namespace nlohmann;  // for json
 using namespace std;
 
 WINDOW* main_window;
@@ -231,6 +232,29 @@ int main(int argc, char *argv[]) {
     bool connect = false;
     string server_ip{};
     string username{};
+
+    std::ifstream config_file("config.json");
+    json config;
+    bool read_config{true};
+
+    try {
+        config_file >> config;
+    } catch (nlohmann::detail::parse_error &e) {
+        spdlog::error("could not find 'config.json' or the config is ill formatted -> {}", e.what());
+        read_config = false;
+    }
+
+    if (read_config) {
+        port = config["port"];
+        username = config["username"];
+        server_ip = config["server_ip"];
+        dont_display_background_robot = ! config["background_robot"];
+        no_menu_host = config["no_menu_host"];
+
+        if (!username.empty() & !server_ip.empty()) {
+            connect = true;
+        }
+    }
 
     auto cli = (option("-h", "--help").set(help).doc("show this help"),
             option("-b").set(dont_display_background_robot).doc("if set background robot will not be displayed"),

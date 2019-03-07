@@ -1,0 +1,7 @@
+{
+  "port" : 5000,
+  "username" : "",
+  "server_ip" : "",
+  "background_robot": true,
+  "no_menu_host": false
+}

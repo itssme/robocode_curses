@@ -12,13 +12,13 @@ thread_dep = dependency('threads')
 # add_global_arguments('-DASIO_NO_DEPRECATED', language : 'cpp')
 # # end asio
 
-# add_global_arguments('-I' + get_option('clipp_include_dir'), language : 'cpp')
+add_global_arguments('-I' + get_option('clipp_include_dir'), language : 'cpp')
 
 # add_global_arguments('-I' + get_option('cli11_include_dir'), language : 'cpp')
 
 add_global_arguments('-I' + get_option('spdlog_include_dir'), language : 'cpp')
 
-# add_global_arguments('-I' + get_option('json_include_dir'), language : 'cpp')
+add_global_arguments('-I' + get_option('json_include_dir'), language : 'cpp')
 
 # begin protobuf: https://developers.google.com/protocol-buffers/
 # protobuf: must be installed independently and has to be found...
