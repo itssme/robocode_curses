@@ -35,7 +35,6 @@ private:
     std::vector<std::tuple<int, std::string, double>> game_results;
     unsigned long int get_connection_from_robot(int robot_index);
     unsigned long int get_robot_from_connection(int connection_index);
-    std::vector<std::tuple<int, std::string, double>> get_results();
     void cleanup();
 public:
     ServerImpl service;
@@ -47,6 +46,7 @@ public:
     void tick_all();
     void draw_all();
     void shutdown_server();
+    std::vector<std::tuple<int, std::string, double>> get_results();
 };
 
 

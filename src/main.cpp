@@ -64,7 +64,6 @@ void server() {
     while (not start_game) {
         draw_mutex.lock();
         while (game.service.connections.size() != connected_peers) {
-
             display_conns.add_option(game.service.connections.at(connected_peers)->username + " -> " +
                                      game.service.connections.at(connected_peers)->peer);
             connected_peers += 1;
@@ -94,10 +93,26 @@ void server() {
     bool running_loop = true;
     game.game_loop(running_loop);
 
+    // TODO: start sending positions of all objects over asio to players
+
     box(main_window, 0 , 0);
     wrefresh(main_window);
 
-    // TODO: start sending positions of all objects over asio to players
+    auto results = game.get_results();
+    std::vector<std::string> scores;
+
+    for (auto result: results) {
+        scores.push_back(std::get<1>(result) + " " + std::to_string(std::get<2>(result)*TICK/1000) + "s");
+    }
+
+    scores.emplace_back("End");
+    Menu show_results(main_window, scores, 0, "Game Scores");
+    show_results.refresh_all();
+    wrefresh(main_window);
+    show_results.loop(&draw_mutex);
+    show_results.erase();
+    show_results.refresh_all();
+    wrefresh(main_window);
 }
 
 void client(const std::string &username, const std::string &server_ip) {

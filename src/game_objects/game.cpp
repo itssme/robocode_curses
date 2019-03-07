@@ -20,6 +20,8 @@ Game::Game(WINDOW *window, std::string server_address) {
         //std::cout << "Server listening on " << server_address << std::endl;
         server->Wait();
     });
+
+    this->ticks = 0;
 }
 
 void Game::game_loop(bool& running) {
@@ -51,6 +53,10 @@ void Game::game_loop(bool& running) {
         std::this_thread::sleep_for(std::chrono::milliseconds(TICK)-(end-start));
     }
 
+    // add last robot to scores
+    this->game_results.push_back(std::tuple<int, std::string, double>(this->robots.at(0).id, this->service.connections.at(this->get_connection_from_robot(this->robots.at(0).id))->username,ticks));
+
+    this->shutdown_server();
     this->cleanup();
 }
 
@@ -226,34 +232,6 @@ void Game::tick_all() {
     }
 
     this->robots = new_robots;
-
-    /*
-    for (unsigned long int i = 0; i < updates.size(); ++i) {
-        //std::cout << "Update is: " << updates.at(i).valid() << std::endl;
-        while (! updates.at(i).valid()) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        }
-
-        shared::UpdateFromClient update_client = updates.at(i).get();  // TODO: check if robot is still alive
-
-        GameObjects::Robot* robot = &this->robots.at(i);
-
-        // create bullet object if player shot
-        if (update_client.shot()) {
-            this->bullets.push_back(this->robots.at(i).shoot());
-        }
-
-        // update position of player
-        // TODO: check if last speed matches new position to avoid cheating
-        this->robots.at(i).set_pos(update_client.pos().y(), update_client.pos().x());
-
-        // update speed of player
-        // TODO: check if player is not above max speed (read max speed from config file)
-        this->robots.at(i).set_speed(update_client.speed().y(), update_client.speed().x());
-
-        this->robots.at(i).set_gun_rotation(update_client.gun_pos().degrees());
-    }
-    */
 }
 
 void Game::draw_all() {
@@ -308,12 +286,19 @@ unsigned long int Game::get_robot_from_connection(int connection_index) {
 }
 
 std::vector<std::tuple<int, std::string, double>> Game::get_results() {
-    return this->game_results;
+    auto results = this->game_results;
+
+    // sort by time the robot has been alive (calculated in ticks)
+    std::sort(results.begin(), results.end(), [](std::tuple<int, std::string, double> &sc1, std::tuple<int, std::string, double> &sc2) {
+        return (std::get<2>(sc1) > std::get<2>(sc2));
+    });
+    return results;
 }
 
 void Game::shutdown_server() {
     // TODO: send stop message to peers
     this->server->Shutdown();
+    this->server_thread->join();
 }
 
 void Game::cleanup() {

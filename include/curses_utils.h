@@ -209,7 +209,7 @@ public:
             this->options_text_input.at(at_option-options.size()).de_select();
         }
         if (at_option == 0) {
-            at_option = static_cast<int>((options.size()+options_text_input.size()) - 1);
+            at_option = (options.size() + options_text_input.size()) - 1;
         } else {
             at_option--;
         }
@@ -249,7 +249,7 @@ public:
         }
     }
     int evaluate_choice() {
-        return at_option;
+        return static_cast<int>(at_option);
     }
     void refresh_all() {
         if (is_subwin(this->window)) {
@@ -294,6 +294,8 @@ public:
     }
     void redraw() {
         this->options.clear();
+        werase(this->window);
+        box(this->window, 0, 0);
 
         for (unsigned long int i = 0; i < this->text.size(); i++) {
             this->options.emplace_back(Option(this->window, this->text.at(i),
