@@ -24,7 +24,7 @@ Game::Game(WINDOW *window, std::string server_address) {
     this->ticks = 0;
 }
 
-void Game::game_loop(bool& running) {
+void Game::game_loop(bool& running, StreamingServer& stream) {
     while (this->robots.size() > 1 && running) {
         auto start = std::chrono::steady_clock::now();
         this->tick_all();
@@ -47,6 +47,7 @@ void Game::game_loop(bool& running) {
             std::this_thread::sleep_for(std::chrono::milliseconds(TICK/MODIFY_TICK)-(end_mod_tick-start_mod_tick));
         }
 
+        this->send_stream(stream);
         this->ticks += 1;
 
         auto end = std::chrono::steady_clock::now();
@@ -58,6 +59,31 @@ void Game::game_loop(bool& running) {
 
     this->shutdown_server();
     this->cleanup();
+}
+
+void Game::send_stream(StreamingServer& stream) {
+    shared::StreamingUpdate update;
+
+    for (const auto &robot: this->robots) {
+        shared::StreamingRobot *strm_robot = update.add_robots();
+
+        strm_robot->mutable_pos()->set_y(robot.drawable_robot.pos_height);
+        strm_robot->mutable_pos()->set_x(robot.drawable_robot.pos_width);
+        strm_robot->mutable_gun_pos()->set_degrees(robot.gun_degree);
+        strm_robot->set_energy_left(robot.energy);
+    }
+
+    for (const auto &bullet: this->bullets) {
+        shared::StreamingBullet *strm_bullet = update.add_bullets();
+
+        strm_bullet->mutable_pos()->set_y(bullet.drawable_bullet.pos_height);
+        strm_bullet->mutable_pos()->set_x(bullet.drawable_bullet.pos_width);
+    }
+
+    endwin();
+    std::cout << "NEW UPDATE\n" <<  update.DebugString() << std::endl;
+
+    stream.send_to_all(update);
 }
 
 void Game::tick_modify(int tick_modifier) {

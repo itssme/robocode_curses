@@ -47,6 +47,7 @@ void server() {
     spdlog::info("in server");
     std::string server_address("0.0.0.0:" + std::to_string(port)); // TODO: read port from config json file
 
+    StreamingServer streaming_server(5010);  // TODO: read port from config
     Game game(main_window, server_address);
 
     VariableMenu display_conns(main_window, std::vector<std::string>{"Back .."}, 0, " Press enter to start game ");
@@ -95,9 +96,7 @@ void server() {
     game.start();
 
     bool running_loop = true;
-    game.game_loop(running_loop);
-
-    // TODO: start sending positions of all objects over asio to players
+    game.game_loop(running_loop, streaming_server);  // blocking until the game is finished
 
     box(main_window, 0 , 0);
     wrefresh(main_window);
@@ -150,6 +149,8 @@ void client(const std::string &username, const std::string &server_ip) {
     cout << "ID: " << id << endl;
 
     // TODO: get positions of all other players and objects using asio to display them
+
+    StreamingClient streaming_client(server_ip, 5010); // TODO: read port from config
 
     while (1) {
         this_thread::sleep_for(chrono::seconds(1));
@@ -248,15 +249,16 @@ int main(int argc, char *argv[]) {
 
     spdlog::info("started");
 
-
+    /*
     int i;
     std::cin >> i;
 
     if (i == 0) {
         StreamingServer strm_server(5010);
-        while (1) {
-            this_thread::sleep_for(chrono::seconds(1));
-        }
+        std::cout << "after stream" << std::endl;
+        this_thread::sleep_for(chrono::seconds(5));
+        std::cout << "at end" << std::endl;
+
     } else {
         StreamingClient strm_client("127.0.0.1", 5010);
         while (1) {
@@ -264,8 +266,13 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    return 0;
+    std::cout << "at end" << std::endl;
+    while (1) {
+        this_thread::sleep_for(chrono::seconds(1));
+    }
 
+    return 0;
+    */
 
     bool help = false;
     bool port_set = false;

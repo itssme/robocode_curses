@@ -40,8 +40,9 @@ void StreamingClient::start_streaming_client(std::string server_address, short u
         }
     }
     std::cout << "after msg process" << std::endl;
+    bool got_end = false;
 
-    while (true) {
+    while (! got_end) {
         asio_utils::MessageType messageType;
         asio_utils::get_proto_type(socket, messageType);
         std::cout << "after update process" << std::endl;
@@ -50,10 +51,12 @@ void StreamingClient::start_streaming_client(std::string server_address, short u
             shared::StreamingUpdate start;
             asio_utils::get_proto_msg(socket, start);
             std::cout << start.DebugString() << std::endl;
+
         } else if (messageType == asio_utils::MessageType::End) {
-            shared::Empty start;
-            asio_utils::get_proto_msg(socket, start);
-            std::cout << start.DebugString() << std::endl;
+            shared::Empty end;
+            asio_utils::get_proto_msg(socket, end);
+            std::cout << "end message is: " << end.DebugString() << std::endl;
+            got_end = true;
         } else {
             std::cout << "Received wrong message" << std::endl;
             spdlog::info("Received an unexpected message");

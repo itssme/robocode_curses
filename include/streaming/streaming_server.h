@@ -18,7 +18,10 @@ private:
     std::thread asio_thread;
     std::vector<tcp::socket> sockets;
     void start_streaming_server(short unsigned int port);
+    bool stop{false};
+    tcp::acceptor *acceptor;
 public:
+    void send_to_all(shared::StreamingUpdate update);
     StreamingServer(int port);
     ~StreamingServer();
 };

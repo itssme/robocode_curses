@@ -16,11 +16,11 @@
 #include <random>
 #include <algorithm>
 
+#include "streaming_server.h"
+#include "server.h"
+
 #include "game_objects.h"
 #include "spdlog/spdlog.h"
-#undef OK
-#include "server.h"
-#define OK      (0)
 
 #define TICK 100
 #define MODIFY_TICK 2
@@ -35,13 +35,14 @@ private:
     std::vector<std::tuple<int, std::string, double>> game_results;
     unsigned long int get_connection_from_robot(int robot_index);
     unsigned long int get_robot_from_connection(int connection_index);
+    void send_stream(StreamingServer& stream);
     void cleanup();
 public:
     ServerImpl service;
     std::thread* server_thread;
     Game(WINDOW* window, std::string server_address);
     void start();
-    void game_loop(bool& running);
+    void game_loop(bool& running, StreamingServer& stream);
     void tick_modify(int tick_modify);
     void tick_all();
     void draw_all();
