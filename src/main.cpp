@@ -119,13 +119,10 @@ void server() {
 }
 
 void client(const std::string &username, const std::string &server_ip) {
-    // TODO: remove later
     running = false;
     t->join();
-    endwin();
 
-    cout << "CLIENT" << endl;
-    cout << username << endl;
+    spdlog::info("in client with username '{}' and server_ip '{}'", username, server_ip);
 
     std::string server_address("0.0.0.0:0"); // ':0' will choose a random available port
 
@@ -140,17 +137,15 @@ void client(const std::string &username, const std::string &server_ip) {
     std::unique_ptr<Server> server(builder.BuildAndStart());
 
     thread waiting([&]{
-        std::cout << "Server listening on " << server_address << " -> " << selected_port << std::endl;
+        spdlog::info("server listening on {}:{}", server_address, selected_port);
         server->Wait();
     });
 
     Advertise ad(grpc::CreateChannel(server_ip + ":" + std::to_string(port), grpc::InsecureChannelCredentials())); // TODO: read port from config json
     int id = ad.Register(username, selected_port);
-    cout << "ID: " << id << endl;
+    spdlog::info("got id form server: {}", id);
 
-    // TODO: get positions of all other players and objects using asio to display them
-
-    StreamingClient streaming_client(server_ip, 5010); // TODO: read port from config
+    StreamingClient streaming_client(main_window, server_ip, 5010); // TODO: read port from config
 
     while (1) {
         this_thread::sleep_for(chrono::seconds(1));
@@ -248,31 +243,6 @@ int main(int argc, char *argv[]) {
     }
 
     spdlog::info("started");
-
-    /*
-    int i;
-    std::cin >> i;
-
-    if (i == 0) {
-        StreamingServer strm_server(5010);
-        std::cout << "after stream" << std::endl;
-        this_thread::sleep_for(chrono::seconds(5));
-        std::cout << "at end" << std::endl;
-
-    } else {
-        StreamingClient strm_client("127.0.0.1", 5010);
-        while (1) {
-            this_thread::sleep_for(chrono::seconds(1));
-        }
-    }
-
-    std::cout << "at end" << std::endl;
-    while (1) {
-        this_thread::sleep_for(chrono::seconds(1));
-    }
-
-    return 0;
-    */
 
     bool help = false;
     bool port_set = false;

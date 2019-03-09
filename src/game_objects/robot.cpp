@@ -37,16 +37,11 @@ GameObjects::Bullet GameObjects::BasicRobot::shoot(WINDOW* parent_window) {
     auto speed_y = (this->height/2.0) * std::cos(((std::fmod(this->gun_degree+90, 360))*M_PI)/180);
     auto speed_x = (this->height/2.0) * std::sin(((std::fmod(this->gun_degree+90, 360))*M_PI)/180);
 
-    // TODO: check if bullets are NOT created IN the robot!
     return GameObjects::Bullet(parent_window, this->pos_height + (this->height/2.0),
                                this->pos_width + (this->width/2.0), -1.5 * speed_y, 1.5 * speed_x, this->id);
 }
 
 bool GameObjects::BasicRobot::check_collision(Bullet bullet) {
-    //std::cout << "\nChecking for: " << this->id << " and bullet has " << bullet.created_by << std::endl;
-    //std::cout << bullet.pos_height << " >= " << this->pos_height << "&&" <<  bullet.pos_height << "<=" << this->pos_height << "+" << this->height << std::endl;
-    //std::cout << bullet.pos_width << ">=" << this->pos_width << "&&" << bullet.pos_width << "<=" << this->pos_width << "+" << this->width << std::endl;
-
     return bullet.pos_height >= this->pos_height && bullet.pos_height <= this->pos_height + this->height
            && bullet.pos_width >= this->pos_width && bullet.pos_width <= this->pos_width + this->width;
 }
@@ -66,8 +61,9 @@ void GameObjects::BasicRobot::set_gun_rotation(double degrees) {
 }
 
 void GameObjects::Robot::draw() {
-    this->drawable_robot.pos_height = static_cast<int>(this->pos_height);
-    this->drawable_robot.pos_width = static_cast<int>(pos_width);
+    //this->drawable_robot.pos_height = static_cast<int>(this->pos_height);
+    //this->drawable_robot.pos_width = static_cast<int>(pos_width);
+    this->drawable_robot.move(static_cast<int>(this->pos_height), static_cast<int>(pos_width));
     this->drawable_robot.draw();
 }
 

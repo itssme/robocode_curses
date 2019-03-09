@@ -8,18 +8,19 @@
 
 #include "streaming/streaming_client.h"
 
-StreamingClient::StreamingClient(std::string server_address, int port) {
-    this-> asio_thread = std::thread(&StreamingClient::start_streaming_client, this, server_address, port);
+
+StreamingClient::StreamingClient(WINDOW* game_window, std::string server_address, int port) {
+    this-> asio_thread = std::thread(&StreamingClient::start_streaming_client, this, game_window, server_address, port);
 }
 
-void StreamingClient::start_streaming_client(std::string server_address, short unsigned int port) {
+void StreamingClient::start_streaming_client(WINDOW* game_window, std::string server_address, short unsigned int port) {
     asio::io_context io_context;
 
     tcp::resolver resolver{io_context};
     auto results = resolver.resolve(server_address, std::to_string(port));
     tcp::socket socket{io_context};
 
-    std::cout << "before connect: " << server_address << " port " << port << std::endl;
+    spdlog::info("before stream connect: {} port: {}", server_address, port);
     asio::connect(socket, results);
 
     shared::StartStreaming start_strm;
@@ -33,32 +34,50 @@ void StreamingClient::start_streaming_client(std::string server_address, short u
         if (messageType == asio_utils::MessageType::StartStreaming) {
             shared::StartStreaming start;
             asio_utils::get_proto_msg(socket, start);
-            std::cout << start.DebugString() << std::endl;
+            spdlog::info("got start message for streaming");
         } else {
-            std::cout << "Received wrong message" << std::endl;
             spdlog::info("Did not receive correct start streaming message");
         }
     }
-    std::cout << "after msg process" << std::endl;
+
     bool got_end = false;
 
     while (! got_end) {
         asio_utils::MessageType messageType;
         asio_utils::get_proto_type(socket, messageType);
-        std::cout << "after update process" << std::endl;
+        spdlog::info("got a new message");
 
         if (messageType == asio_utils::MessageType::StreamingUpdate) {
-            shared::StreamingUpdate start;
-            asio_utils::get_proto_msg(socket, start);
-            std::cout << start.DebugString() << std::endl;
+            shared::StreamingUpdate update;
+            asio_utils::get_proto_msg(socket, update);
+            spdlog::info("Message is update: {}", update.DebugString());
+
+            werase(game_window);
+
+            for (const shared::StreamingRobot &robot: update.robots()) {
+                drawable::Robot draw_robot(game_window,
+                                           static_cast<int>(robot.pos().y()),
+                                           static_cast<int>(robot.pos().x()));
+                draw_robot.set_gun_rotation(static_cast<float>(robot.gun_pos().degrees()));
+                draw_robot.draw();
+            }
+
+            for (const shared::StreamingBullet &bullet: update.bullets()) {
+                drawable::Bullet draw_bullet(game_window,
+                                             static_cast<int>(bullet.pos().y()),
+                                             static_cast<int>(bullet.pos().x()), 2, 2);
+                draw_bullet.draw();
+            }
+
+            box(game_window, 0, 0);
+            wrefresh(game_window);
 
         } else if (messageType == asio_utils::MessageType::End) {
             shared::Empty end;
             asio_utils::get_proto_msg(socket, end);
-            std::cout << "end message is: " << end.DebugString() << std::endl;
+            spdlog::info("Message is end: {}", end.DebugString());
             got_end = true;
         } else {
-            std::cout << "Received wrong message" << std::endl;
             spdlog::info("Received an unexpected message");
         }
     }

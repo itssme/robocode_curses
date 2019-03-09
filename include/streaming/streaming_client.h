@@ -10,13 +10,14 @@
 #define ROBOCODE_STREAMING_CLIENT_H
 
 #include "streaming.h"
+#include "curses_drawable_objects.h"
 
 class StreamingClient {
 private:
     std::thread asio_thread;
-    void start_streaming_client(std::string server_address, short unsigned int port);
+    void start_streaming_client(WINDOW* game_window, std::string server_address, short unsigned int port);
 public:
-    StreamingClient(std::string server_address, int port);
+    StreamingClient(WINDOW* game_window, std::string server_address, int port);
     ~StreamingClient();
 };
 

@@ -77,7 +77,6 @@ public:
         }
 
         if (scanned != nullptr) {
-            std::cout << "scanned a robot" << std::endl;
             shot = true;
         }
 

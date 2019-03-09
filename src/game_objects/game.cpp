@@ -67,21 +67,18 @@ void Game::send_stream(StreamingServer& stream) {
     for (const auto &robot: this->robots) {
         shared::StreamingRobot *strm_robot = update.add_robots();
 
-        strm_robot->mutable_pos()->set_y(robot.drawable_robot.pos_height);
-        strm_robot->mutable_pos()->set_x(robot.drawable_robot.pos_width);
-        strm_robot->mutable_gun_pos()->set_degrees(robot.gun_degree);
+        strm_robot->mutable_pos()->set_y(static_cast<int>(robot.pos_height));
+        strm_robot->mutable_pos()->set_x(static_cast<int>(robot.pos_width));
+        strm_robot->mutable_gun_pos()->set_degrees(static_cast<int>(robot.gun_degree));
         strm_robot->set_energy_left(robot.energy);
     }
 
     for (const auto &bullet: this->bullets) {
         shared::StreamingBullet *strm_bullet = update.add_bullets();
 
-        strm_bullet->mutable_pos()->set_y(bullet.drawable_bullet.pos_height);
-        strm_bullet->mutable_pos()->set_x(bullet.drawable_bullet.pos_width);
+        strm_bullet->mutable_pos()->set_y(static_cast<int>(bullet.pos_height));
+        strm_bullet->mutable_pos()->set_x(static_cast<int>(bullet.pos_width));
     }
-
-    endwin();
-    std::cout << "NEW UPDATE\n" <<  update.DebugString() << std::endl;
 
     stream.send_to_all(update);
 }
@@ -91,18 +88,6 @@ void Game::tick_modify(int tick_modifier) {
         this->bullets.at(i).pos_height += this->bullets.at(i).speed_height / tick_modifier;
         this->bullets.at(i).pos_width += this->bullets.at(i).speed_width / tick_modifier;
     }
-
-    /*
-    for (unsigned int i = 0; i < this->robots.size(); i++) {
-        if (robots.at(i).energy <= 0) {
-            continue;
-        }
-
-        this->robots.at(i).pos_height += this->robots.at(i).speed_height / tick_modifier;
-        this->robots.at(i).pos_width += this->robots.at(i).speed_width / tick_modifier;
-        this->robots.at(i).set_gun_rotation(this->robots.at(i).gun_degree + (this->robots.at(i).gun_speed / tick_modifier));
-    }
-     */
 }
 
 void Game::tick_all() {
@@ -286,9 +271,9 @@ void Game::start() {
     for (unsigned int i = 0; i < this->service.connections.size(); i++) {
         drawable::Robot robot_draw(this->window,
                                    static_cast<int>(dis_y(gen)),
-                                   static_cast<int>(dis_x(gen))); // TODO: create drawable robot in Robot() constructor
+                                   static_cast<int>(dis_x(gen)));
         GameObjects::Robot robot(this->window, robot_draw, this->service.connections.at(i)->id);
-        robot.energy = 20;
+        robot.energy = 100;
         this->robots.push_back(robot);
     }
 }

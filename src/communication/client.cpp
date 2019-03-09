@@ -9,7 +9,7 @@
 
 Status ClientImpl::GetUpdate(grpc::ServerContext *context, const shared::UpdateFromServer *msg,
                                shared::UpdateFromClient *response) {
-    std::cout << "GOT:\n" << msg->DebugString() << std::endl;
+    //std::cout << "GOT:\n" << msg->DebugString() << std::endl;
 
     this->player.robot.pos_height = msg->pos().y();
     this->player.robot.pos_width = msg->pos().x();
@@ -39,7 +39,7 @@ Status ClientImpl::GetUpdate(grpc::ServerContext *context, const shared::UpdateF
     response->mutable_gun_pos()->set_degrees(this->player.robot.gun_degree);
     response->mutable_gun_pos()->set_speed(this->player.robot.gun_speed);
 
-    std::cout << "\nSENT:\n" << response->DebugString() << std::endl;
+    //std::cout << "\nSENT:\n" << response->DebugString() << std::endl;
 
     return Status::OK;
 }
