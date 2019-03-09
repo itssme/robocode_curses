@@ -4,6 +4,8 @@
 #include <string>
 #include <ncurses.h>
 #undef OK
+#undef timeout(delay)
+#undef getch()
 #include <messages.pb.h>
 #include <thread>
 #include <chrono>
@@ -25,6 +27,8 @@
 #include "client.h"
 #include "game.h"
 #include "player.h"
+#include "streaming_server.h"
+#include "streaming_client.h"
 #define OK      (0)
 
 using namespace clipp;
@@ -243,6 +247,25 @@ int main(int argc, char *argv[]) {
     }
 
     spdlog::info("started");
+
+
+    int i;
+    std::cin >> i;
+
+    if (i == 0) {
+        StreamingServer strm_server(5010);
+        while (1) {
+            this_thread::sleep_for(chrono::seconds(1));
+        }
+    } else {
+        StreamingClient strm_client("127.0.0.1", 5010);
+        while (1) {
+            this_thread::sleep_for(chrono::seconds(1));
+        }
+    }
+
+    return 0;
+
 
     bool help = false;
     bool port_set = false;

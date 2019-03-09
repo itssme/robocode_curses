@@ -77,7 +77,7 @@ namespace GameObjects {
         Robot(WINDOW *parent_window, drawable::Robot drawable_robot, int id = -1);
     };
 
-}
+} // namespace GameObjects
 
 
 #endif //ROBOCODE_GAME_OBJECTS_H

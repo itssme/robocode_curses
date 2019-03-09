@@ -7,9 +7,9 @@ project('robocode', 'cpp',
 thread_dep = dependency('threads')
 
 # # begin asio: https://think-async.com/Asio/
-# add_global_arguments('-I' + get_option('asio_include_dir'), language : 'cpp')
-# add_global_arguments('-DASIO_STANDALONE', language : 'cpp')
-# add_global_arguments('-DASIO_NO_DEPRECATED', language : 'cpp')
+add_global_arguments('-I' + get_option('asio_include_dir'), language : 'cpp')
+add_global_arguments('-DASIO_STANDALONE', language : 'cpp')
+add_global_arguments('-DASIO_NO_DEPRECATED', language : 'cpp')
 # # end asio
 
 add_global_arguments('-I' + get_option('clipp_include_dir'), language : 'cpp')
@@ -38,8 +38,8 @@ gen = generator(protoc, \
 
 internal_proto = gen.process('src/proto/messages.proto')
 
-inc_dir = include_directories('include')
-game = ['src/main.cpp', 'src/curses_drawable_objects.cpp', 'src/communication/client.cpp', 'src/communication/server.cpp', 'src/game_objects/bullet.cpp', 'src/game_objects/game.cpp', 'src/game_objects/robot.cpp', internal_proto]
+inc_dir = include_directories('include', 'include/streaming')
+game = ['src/main.cpp', 'src/curses_drawable_objects.cpp', 'src/communication/client.cpp', 'src/communication/server.cpp', 'src/game_objects/bullet.cpp', 'src/game_objects/game.cpp', 'src/game_objects/robot.cpp', 'src/communication/streaming/streaming_client.cpp', 'src/communication/streaming/streaming_server.cpp', internal_proto]
 
 executable('robocode',
            sources : game,
