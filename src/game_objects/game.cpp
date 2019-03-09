@@ -55,7 +55,7 @@ void Game::game_loop(bool& running, StreamingServer& stream) {
     }
 
     // add last robot to scores
-    this->game_results.push_back(std::tuple<int, std::string, double>(this->robots.at(0).id, this->service.connections.at(this->get_connection_from_robot(this->robots.at(0).id))->username,ticks));
+    this->game_results.push_back(std::tuple<int, std::string, double>(this->robots.at(0).id, this->service.connections.at(this->get_connection_from_robot(this->robots.at(0).id))->username,ticks+10));
 
     this->shutdown_server();
     this->cleanup();
@@ -273,7 +273,7 @@ void Game::start() {
                                    static_cast<int>(dis_y(gen)),
                                    static_cast<int>(dis_x(gen)));
         GameObjects::Robot robot(this->window, robot_draw, this->service.connections.at(i)->id);
-        robot.energy = 100;
+        robot.energy = 20;
         this->robots.push_back(robot);
     }
 }

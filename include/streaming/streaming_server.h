@@ -22,6 +22,7 @@ private:
     tcp::acceptor *acceptor;
 public:
     void send_to_all(shared::StreamingUpdate update);
+    void close_connections(shared::GameScores scores);
     StreamingServer(int port);
     ~StreamingServer();
 };

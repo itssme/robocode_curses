@@ -17,6 +17,8 @@ private:
     std::thread asio_thread;
     void start_streaming_client(WINDOW* game_window, std::string server_address, short unsigned int port);
 public:
+    shared::GameScores scores;
+    bool stop{false};
     StreamingClient(WINDOW* game_window, std::string server_address, int port);
     ~StreamingClient();
 };

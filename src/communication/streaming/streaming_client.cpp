@@ -40,9 +40,7 @@ void StreamingClient::start_streaming_client(WINDOW* game_window, std::string se
         }
     }
 
-    bool got_end = false;
-
-    while (! got_end) {
+    while (! this->stop) {
         asio_utils::MessageType messageType;
         asio_utils::get_proto_type(socket, messageType);
         spdlog::info("got a new message");
@@ -71,12 +69,17 @@ void StreamingClient::start_streaming_client(WINDOW* game_window, std::string se
 
             box(game_window, 0, 0);
             wrefresh(game_window);
-
+        } else if (messageType == asio_utils::MessageType::GameScores) {
+            shared::GameScores l_scores;
+            asio_utils::get_proto_msg(socket, l_scores);
+            spdlog::info("Message is score: {}", l_scores.DebugString());
+            this->scores = l_scores;
+            this->stop = true;
         } else if (messageType == asio_utils::MessageType::End) {
             shared::Empty end;
             asio_utils::get_proto_msg(socket, end);
             spdlog::info("Message is end: {}", end.DebugString());
-            got_end = true;
+            this->stop = true;
         } else {
             spdlog::info("Received an unexpected message");
         }

@@ -52,6 +52,10 @@ message StreamingUpdate {
     repeated StreamingBullet bullets = 2;
 }
 
+message GameScores {
+    repeated string scores = 1;
+}
+
 message UpdateFromClient {
     Position pos = 1;
     Speed speed = 2;

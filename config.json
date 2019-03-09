@@ -3,5 +3,6 @@
   "username" : "",
   "server_ip" : "",
   "background_robot": true,
-  "no_menu_host": false
+  "no_menu_host": false,
+  "log_level": "info"
 }

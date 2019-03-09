@@ -13,17 +13,18 @@ StreamingServer::StreamingServer(int port) {
 }
 
 StreamingServer::~StreamingServer() {
-    this->stop = true;
     this->acceptor->cancel();
     this->acceptor->close();
+    this->asio_thread.join();
+}
+
+void StreamingServer::close_connections(shared::GameScores scores) {
+    this->stop = true;
 
     for (auto &socket: this->sockets) {
-        shared::Empty end;
-        asio_utils::send_proto(socket, end);
-        socket.close();
+        asio_utils::send_proto(socket, scores);
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
-
-    this->asio_thread.join();
 }
 
 void StreamingServer::start_streaming_server(short unsigned int port) {
@@ -35,10 +36,8 @@ void StreamingServer::start_streaming_server(short unsigned int port) {
     while (! this->stop) {
         error_code l_error_code;
 
-        //std::cout << "before accept at port: " << port << std::endl;
         unsigned long int socket_index = this->sockets.size();
         this->sockets.emplace_back(this->acceptor->accept(l_error_code));
-        //std::cout << "after accept" << std::endl;
 
         if (l_error_code) {
             spdlog::error("Socket Error -> {}", l_error_code.message());
@@ -52,11 +51,9 @@ void StreamingServer::start_streaming_server(short unsigned int port) {
         if (messageType == asio_utils::MessageType::StartStreaming) {
             shared::StartStreaming start;
             asio_utils::get_proto_msg(this->sockets.at(socket_index), start);
-            //std::cout << start.DebugString() << std::endl;
 
             asio_utils::send_proto(this->sockets.at(socket_index), start);
         } else {
-            //std::cout << "Received an unexpected message during accept" << std::endl;
             spdlog::info("Received an unexpected message during accept");
         }
     }

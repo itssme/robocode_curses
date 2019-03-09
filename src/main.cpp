@@ -4,8 +4,8 @@
 #include <string>
 #include <ncurses.h>
 #undef OK
-#undef timeout(delay)
-#undef getch()
+#undef timeout
+#undef getch
 #include <messages.pb.h>
 #include <thread>
 #include <chrono>
@@ -42,6 +42,13 @@ mutex draw_mutex;
 
 int port{5000};
 bool dont_display_background_robot{false};
+
+void shutdown() {
+    endwin();
+    google::protobuf::ShutdownProtobufLibrary();
+    spdlog::info("shutdown");
+    exit(0);
+}
 
 void server() {
     spdlog::info("in server");
@@ -105,17 +112,27 @@ void server() {
     std::vector<std::string> scores;
 
     for (auto result: results) {
-        scores.push_back(std::get<1>(result) + " " + std::to_string(std::get<2>(result)*TICK/1000) + "s");
+        scores.push_back(std::get<1>(result) + " " + std::to_string(static_cast<int>(std::get<2>(result)*TICK/1000)) + " points");
+    }
+    scores.emplace_back("End");
+
+    shared::GameScores game_scores;
+
+    for (const auto &score: scores) {
+        game_scores.add_scores(score);
     }
 
-    scores.emplace_back("End");
-    Menu show_results(main_window, scores, 0, "Game Scores");
+    streaming_server.close_connections(game_scores);
+
+    Menu show_results(main_window, scores, 0, " Game Scores ");
     show_results.refresh_all();
     wrefresh(main_window);
     show_results.loop(&draw_mutex);
     show_results.erase();
     show_results.refresh_all();
     wrefresh(main_window);
+
+    shutdown();
 }
 
 void client(const std::string &username, const std::string &server_ip) {
@@ -147,9 +164,32 @@ void client(const std::string &username, const std::string &server_ip) {
 
     StreamingClient streaming_client(main_window, server_ip, 5010); // TODO: read port from config
 
-    while (1) {
-        this_thread::sleep_for(chrono::seconds(1));
+    while (! streaming_client.stop) {
+        this_thread::sleep_for(chrono::milliseconds(1));
     }
+
+    werase(main_window);
+    box(main_window, 0 , 0);
+    wrefresh(main_window);
+
+    auto results = streaming_client.scores;
+    endwin();
+
+    std::vector<std::string> scores;
+
+    for (const auto &result: results.scores()) {
+        scores.push_back(result);
+    }
+
+    Menu show_results(main_window, scores, 0, " Game Scores ");
+    show_results.refresh_all();
+    wrefresh(main_window);
+    show_results.loop(&draw_mutex);
+    show_results.erase();
+    show_results.refresh_all();
+    wrefresh(main_window);
+
+    shutdown();
 }
 
 void background_robot() {
@@ -233,17 +273,6 @@ void background_robot() {
 int main(int argc, char *argv[]) {
     GOOGLE_PROTOBUF_VERIFY_VERSION;
 
-    // create logger
-    try {
-        auto logger = spdlog::basic_logger_mt("file_logger", "log.log");
-        spdlog::set_default_logger(logger);
-        spdlog::set_level(spdlog::level::info); // TODO: read loglevel from config file
-    } catch (const spdlog::spdlog_ex &ex) {
-        std::cout << "Log init failed: " << ex.what() << std::endl;
-    }
-
-    spdlog::info("started");
-
     bool help = false;
     bool port_set = false;
     bool no_menu_host = false;
@@ -251,9 +280,16 @@ int main(int argc, char *argv[]) {
     string server_ip{};
     string username{};
 
-    std::ifstream config_file("config.json");
+    std::ifstream config_file("../config.json");
     json config;
     bool read_config{true};
+
+    try {
+        auto logger = spdlog::basic_logger_mt("file_logger", "log.log");
+        spdlog::set_default_logger(logger);
+    } catch (const spdlog::spdlog_ex &ex) {
+        std::cout << "Log init failed: " << ex.what() << std::endl;
+    }
 
     try {
         config_file >> config;
@@ -261,6 +297,29 @@ int main(int argc, char *argv[]) {
         spdlog::error("could not find 'config.json' or the config is ill formatted -> {}", e.what());
         read_config = false;
     }
+
+    // set log level
+    try {
+        if (config["log_level"] == "debug") {
+            spdlog::set_level(spdlog::level::debug);
+        } else if (config["log_level"] == "critical") {
+            spdlog::set_level(spdlog::level::critical);
+        } else if (config["log_level"] == "err") {
+            spdlog::set_level(spdlog::level::err);
+        } else if (config["log_level"] == "trace") {
+            spdlog::set_level(spdlog::level::trace);
+        } else if (config["log_level"] == "warn") {
+            spdlog::set_level(spdlog::level::warn);
+        } else if (config["log_level"] == "off") {
+            spdlog::set_level(spdlog::level::off);
+        } else {
+            spdlog::set_level(spdlog::level::info);
+        }
+    } catch (const spdlog::spdlog_ex &ex) {
+        std::cout << "Log init failed: " << ex.what() << std::endl;
+    }
+
+    spdlog::info("started");
 
     if (read_config) {
         port = config["port"];
@@ -400,11 +459,5 @@ int main(int argc, char *argv[]) {
         t->join();
     }
 
-    endwin();
-
-    google::protobuf::ShutdownProtobufLibrary();
-
-    spdlog::info("shutdown");
-
-    return 0;
+    shutdown();
 }

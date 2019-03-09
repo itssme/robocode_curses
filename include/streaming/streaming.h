@@ -45,12 +45,14 @@ namespace asio_utils {
     enum class MessageType {
         StreamingUpdate = 1,
         StartStreaming = 2,
+        GameScores = 3,
         End = 3
     };
 
     const std::unordered_map<std::type_index, MessageType> typeMapping{
         {typeid(shared::StreamingUpdate), MessageType::StreamingUpdate},
         {typeid(shared::StartStreaming), MessageType::StartStreaming},
+        {typeid(shared::GameScores), MessageType::GameScores},
         {typeid(shared::Empty), MessageType::End}};
 
     inline int send_proto(tcp::socket &socket, google::protobuf::Message &message) {
