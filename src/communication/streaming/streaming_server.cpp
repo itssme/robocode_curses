@@ -22,8 +22,11 @@ void StreamingServer::close_connections(shared::GameScores scores) {
     this->stop = true;
 
     for (auto &socket: this->sockets) {
-        asio_utils::send_proto(socket, scores);
-        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        try {
+            asio_utils::send_proto(socket, scores);
+        } catch (const std::exception &exc) {
+            spdlog::critical("critical error while sending scores message {}", exc.what());
+        }
     }
 }
 
@@ -40,7 +43,7 @@ void StreamingServer::start_streaming_server(short unsigned int port) {
         this->sockets.emplace_back(this->acceptor->accept(l_error_code));
 
         if (l_error_code) {
-            spdlog::error("Socket Error -> {}", l_error_code.message());
+            spdlog::error("Socket error -> {}", l_error_code.message());
             this->sockets.at(socket_index).close();
             continue;
         }
@@ -61,6 +64,10 @@ void StreamingServer::start_streaming_server(short unsigned int port) {
 
 void StreamingServer::send_to_all(shared::StreamingUpdate update) {
     for (auto &socket: this->sockets) {
-        asio_utils::send_proto(socket, update);
+        try {
+            asio_utils::send_proto(socket, update);
+        } catch (const std::exception &exc) {
+            spdlog::error("error while trying to send update message");
+        }
     }
 }

@@ -28,6 +28,11 @@ void Game::game_loop(bool& running, StreamingServer& stream) {
     while (this->robots.size() > 1 && running) {
         auto start = std::chrono::steady_clock::now();
         this->tick_all();
+
+        if (robots.size() <= 1) {
+            continue;
+        }
+
         this->draw_all();
 
         for (int i = 0; i < MODIFY_TICK; ++i) {
@@ -55,7 +60,14 @@ void Game::game_loop(bool& running, StreamingServer& stream) {
     }
 
     // add last robot to scores
-    this->game_results.push_back(std::tuple<int, std::string, double>(this->robots.at(0).id, this->service.connections.at(this->get_connection_from_robot(this->robots.at(0).id))->username,ticks+10));
+    if (this->robots.size() != 0) {
+        this->game_results.push_back(std::tuple<int, std::string, double>(this->robots.at(0).id,
+                                                                          this->service.connections.at(
+                                                                                  this->get_connection_from_robot(
+                                                                                          this->robots.at(
+                                                                                                  0).id))->username,
+                                                                          ticks + 10));
+    }
 
     this->shutdown_server();
     this->cleanup();
@@ -100,6 +112,8 @@ void Game::tick_all() {
 
         for (auto &robot: this->robots) {
             if (this->robots.at(i).id != robot.id && this->robots.at(i).check_collision(robot)) {
+                this->robots.at(i).pos_height -= this->robots.at(i).speed_height;
+                this->robots.at(i).pos_width -= this->robots.at(i).speed_width;
                 this->robots.at(i).set_speed(0.0, 0.0);
             }
         }
@@ -119,14 +133,18 @@ void Game::tick_all() {
         // Wall collision
         std::vector<int> hit_wall;
         if (robots.at(i).pos_height >= LINES -(robots.at(i).drawable_robot.height + 1)) {
+            this->robots.at(i).pos_height = LINES - (robots.at(i).drawable_robot.height + 1);
             hit_wall.push_back(4);
         } else if (robots.at(i).pos_height <= 1) {
+            this->robots.at(i).pos_height = 1;
             hit_wall.push_back(2);
         }
 
         if (robots.at(i).pos_width >= COLS -(robots.at(i).drawable_robot.width + 1)) {
+            this->robots.at(i).pos_width = COLS - (robots.at(i).drawable_robot.width + 1);
             hit_wall.push_back(3);
         } else if (robots.at(i).pos_width <= 1) {
+            this->robots.at(i).pos_width= 1;
             hit_wall.push_back(1);
         }
 
@@ -142,7 +160,6 @@ void Game::tick_all() {
                 }
             } else if (! (bullet.pos_width >= COLS || bullet.pos_height >= LINES ||
                           bullet.pos_height <= 0 || bullet.pos_width <= 0)) {
-                //bullet.tick();
                 survived_bullets.push_back(bullet);
             }
         }
@@ -206,8 +223,6 @@ void Game::tick_all() {
     }
 
     for (unsigned long int i = 0; i < messages.size(); ++i) {
-        //std::cout << messages.at(i).DebugString() << std::endl;
-
         shared::UpdateFromClient update_client = std::get<1>(messages.at(i));
 
         // player has not sent an update -> using speed values of last update
@@ -222,6 +237,7 @@ void Game::tick_all() {
             this->game_results.emplace_back(this->robots.at(robot_index).id,
                                             this->service.connections.at(this->get_connection_from_robot(this->robots.at(robot_index).id))->username,
                                             ticks);
+            continue;
         }
 
         // create bullet object if player shot
@@ -230,15 +246,29 @@ void Game::tick_all() {
         }
 
         // update position of player
-        // TODO: check if last speed matches new position to avoid cheating
-        this->robots.at(robot_index).set_pos(update_client.pos().y(), update_client.pos().x());
+        auto y_diff = fabs(((this->robots.at(robot_index).pos_height + update_client.speed().y()) - this->robots.at(robot_index).speed_height) - update_client.pos().y());
+        auto x_diff = fabs(((this->robots.at(robot_index).pos_width  + update_client.speed().x()) - this->robots.at(robot_index).speed_width) - update_client.pos().x());
+
+        if (y_diff >= 1 || x_diff >= 1) {
+            this->robots.at(robot_index).energy -= 20;
+            spdlog::info("{} tried to cheat!", this->robots.at(robot_index).id);
+            this->robots.at(robot_index).set_pos(update_client.pos().y(), update_client.pos().x());
+        }
 
         // update speed of player
-        // TODO: check if player is not above max speed (read max speed from config file)
-        this->robots.at(robot_index).set_speed(update_client.speed().y(), update_client.speed().x());
+        if (fabs(update_client.speed().y()) <= 1 && fabs(update_client.speed().x() <= 1)) {
+            this->robots.at(robot_index).set_speed(update_client.speed().y(), update_client.speed().x());
+        }
 
         this->robots.at(robot_index).set_gun_rotation(update_client.gun_pos().degrees());
         this->robots.at(robot_index).gun_speed = update_client.gun_pos().speed();
+
+        if (this->robots.at(robot_index).energy <= 0) {
+            this->game_results.emplace_back(this->robots.at(robot_index).id,
+                                            this->service.connections.at(this->get_connection_from_robot(this->robots.at(robot_index).id))->username,
+                                            ticks);
+            continue;
+        }
     }
 
     std::vector<GameObjects::Robot> new_robots;
