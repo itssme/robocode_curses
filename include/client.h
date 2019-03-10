@@ -27,6 +27,12 @@ public:
     std::unique_ptr<shared::GameServer::Stub> stub_;
     Advertise(std::shared_ptr<grpc::Channel> channel)
             : stub_(shared::GameServer::NewStub(channel)) {}
+    /*!
+     * Register client at the server and get an id
+     * @param username that will be sent to the server
+     * @param port th server is running on
+     * @return a user id or -1 if the communication failed
+     */
     int Register(const std::string& username, const int port) {
         shared::Register request;
         request.set_name(username);
@@ -47,7 +53,7 @@ public:
 };
 
 
-class ClientImpl final: public shared::Client::Service { // TODO: use bidirectional stream instead of this
+class ClientImpl final: public shared::Client::Service {
 public:
     Player player;
     ClientImpl(Player player) : player(player) {}

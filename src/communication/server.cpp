@@ -7,6 +7,13 @@
 */
 #include "server.h"
 
+/*!
+ * Register a new clients
+ * @param context server context
+ * @param msg that the client has sent
+ * @param response that has to be filled in by the server
+ * @return a grpc status code
+ */
 Status ServerImpl::RegisterClient(grpc::ServerContext *context, const shared::Register *msg, shared::PlayerId *response) {
     std::string ip = context->peer();
     std::string token = ":";

@@ -8,22 +8,32 @@
 
 #include "game.h"
 
+/*!
+ * Starts game server
+ * @param window where the game will be played
+ * @param server_address gameserver will listen on this address
+ */
 Game::Game(WINDOW *window, std::string server_address) {
     this->window = window;
 
     server_thread = new std::thread([&]{
         ServerBuilder builder;
-        builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());  // this will not throw an error if the port is already in use
+        builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
         builder.RegisterService(&service);
         server = builder.BuildAndStart();
         spdlog::info("Server listening on " + server_address);
-        //std::cout << "Server listening on " << server_address << std::endl;
         server->Wait();
     });
 
     this->ticks = 0;
 }
 
+/*!
+ * Game loop calculates position, movements and collisions of all objects.
+ * Also sends all game data via the server to the client.
+ * @param running Variable can be set false if the game should stop prematurely
+ * @param stream Reference to streaming server
+ */
 void Game::game_loop(bool& running, StreamingServer& stream) {
     while (this->robots.size() > 1 && running) {
         auto start = std::chrono::steady_clock::now();
@@ -40,12 +50,6 @@ void Game::game_loop(bool& running, StreamingServer& stream) {
 
             this->tick_modify(MODIFY_TICK);
 
-            /* // TODO: test this
-            for (auto bullet: this->bullets) {
-                bullet.draw();
-            }
-             */
-
             this->draw_all();
 
             auto end_mod_tick = std::chrono::steady_clock::now();
@@ -60,7 +64,7 @@ void Game::game_loop(bool& running, StreamingServer& stream) {
     }
 
     // add last robot to scores
-    if (this->robots.size() != 0) {
+    if (! this->robots.empty()) {
         this->game_results.push_back(std::tuple<int, std::string, double>(this->robots.at(0).id,
                                                                           this->service.connections.at(
                                                                                   this->get_connection_from_robot(
@@ -73,6 +77,10 @@ void Game::game_loop(bool& running, StreamingServer& stream) {
     this->cleanup();
 }
 
+/*!
+ * Sends all game relevant data to the clients for displaying.
+ * @param stream Reference to streaming server
+ */
 void Game::send_stream(StreamingServer& stream) {
     shared::StreamingUpdate update;
 
@@ -95,6 +103,12 @@ void Game::send_stream(StreamingServer& stream) {
     stream.send_to_all(update);
 }
 
+/*!
+ * Can be used to make small ticks between ticks.
+ * Only works for bullets because they can travel
+ * faster than one square per tick.
+ * @param tick_modifier Amount of small ticks between ticks
+ */
 void Game::tick_modify(int tick_modifier) {
     for (unsigned int i = 0; i < this->bullets.size(); i++) {
         this->bullets.at(i).pos_height += this->bullets.at(i).speed_height / tick_modifier;
@@ -102,6 +116,11 @@ void Game::tick_modify(int tick_modifier) {
     }
 }
 
+/*!
+ * Ticks all game objects, checks for collision and
+ * sends position update to clients. Then gets the
+ * update from the client and updates his position.
+ */
 void Game::tick_all() {
     std::vector<std::tuple<unsigned long int, shared::UpdateFromClient>> messages;
 
@@ -226,7 +245,6 @@ void Game::tick_all() {
         shared::UpdateFromClient update_client = std::get<1>(messages.at(i));
 
         // player has not sent an update -> using speed values of last update
-        // TODO: if player does not respond after 5 messages, declare connection lost
         if (update_client.pos().y() == -1) {
             continue;
         }
@@ -249,7 +267,7 @@ void Game::tick_all() {
         auto y_diff = fabs(((this->robots.at(robot_index).pos_height + update_client.speed().y()) - this->robots.at(robot_index).speed_height) - update_client.pos().y());
         auto x_diff = fabs(((this->robots.at(robot_index).pos_width  + update_client.speed().x()) - this->robots.at(robot_index).speed_width) - update_client.pos().x());
 
-        if (y_diff >= 1 || x_diff >= 1) {
+        if (y_diff >= 5 || x_diff >= 5) {
             this->robots.at(robot_index).energy -= 20;
             spdlog::info("{} tried to cheat!", this->robots.at(robot_index).id);
             this->robots.at(robot_index).set_pos(update_client.pos().y(), update_client.pos().x());
@@ -282,6 +300,9 @@ void Game::tick_all() {
     this->robots = new_robots;
 }
 
+/*!
+ * Draws all game objects to the game window.
+ */
 void Game::draw_all() {
     werase(this->window);
     box(this->window, 0 , 0);
@@ -297,6 +318,10 @@ void Game::draw_all() {
     wrefresh(this->window);
 }
 
+/*!
+ * Create a robot game object for every
+ * connected player.
+ */
 void Game::start() {
     this->robots.reserve(this->service.connections.size());
 
@@ -333,6 +358,11 @@ void Game::start() {
     }
 }
 
+/*!
+ * Get connection index by using robot id
+ * @param robot_id corresponding to a connection
+ * @return index of the connection
+ */
 unsigned long int Game::get_connection_from_robot(int robot_id) {
     for (unsigned long int i = 0; i <= this->service.connections.size(); i++) {
         if (this->service.connections.at(i)->id == robot_id) {
@@ -342,6 +372,11 @@ unsigned long int Game::get_connection_from_robot(int robot_id) {
     return static_cast<unsigned long>(-1);
 }
 
+/*!
+ * Get robot index by using connection index
+ * @param connection_index corresponding to a robot
+ * @return index of the robot
+ */
 unsigned long int Game::get_robot_from_connection(int connection_index) {
     for (unsigned long int i = 0; i <= this->robots.size(); i++) {
         if (this->robots.at(i).id == connection_index) {
@@ -351,6 +386,10 @@ unsigned long int Game::get_robot_from_connection(int connection_index) {
     return static_cast<unsigned long>(-1);
 }
 
+/*!
+ * Sorts and returns the game results
+ * @return sorted game results
+ */
 std::vector<std::tuple<int, std::string, double>> Game::get_results() {
     auto results = this->game_results;
 
@@ -361,12 +400,17 @@ std::vector<std::tuple<int, std::string, double>> Game::get_results() {
     return results;
 }
 
+/*!
+ * Stop the server
+ */
 void Game::shutdown_server() {
-    // TODO: send stop message to peers
     this->server->Shutdown();
     this->server_thread->join();
 }
 
+/*!
+ * Erase window and refresh
+ */
 void Game::cleanup() {
     werase(this->window);
     wrefresh(this->window);

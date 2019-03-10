@@ -17,16 +17,14 @@ class StreamingServer {
 private:
     std::thread asio_thread;
     std::vector<tcp::socket> sockets;
-    void start_streaming_server(short unsigned int port);
+    void start_streaming_server(short unsigned int port, int height, int width);
     bool stop{false};
     tcp::acceptor *acceptor;
 public:
     void send_to_all(shared::StreamingUpdate update);
     void close_connections(shared::GameScores scores);
-    StreamingServer(int port);
+    StreamingServer(int port, int height, int width);
     ~StreamingServer();
 };
-
-
 
 #endif //ROBOCODE_STREAMINGSERVER_H

@@ -47,6 +47,11 @@ message StreamingRobot {
     GunPosition gun_pos = 3;
 }
 
+message WindowSize {
+    int32 height = 1;
+    int32 width = 2;
+}
+
 message StreamingUpdate {
     repeated StreamingRobot robots = 1;
     repeated StreamingBullet bullets = 2;

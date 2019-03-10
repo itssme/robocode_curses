@@ -12,6 +12,13 @@
 #include <ncurses.h>
 
 namespace drawable {
+
+    /*!
+     * Basic drawable object \n
+     * Has a position, height, width
+     * and a own window where the
+     * object will be rendered on.
+     */
     class DrawableObject {
     public:
         int pos_width;
@@ -23,6 +30,10 @@ namespace drawable {
         void move(int pos_height, int pos_width);
     };
 
+    /*!
+     * Drawable robot which posses a
+     * gun that can be draw.
+     */
     class Robot : public DrawableObject {
     public:
         double gun_rotation{0};
@@ -35,6 +46,10 @@ namespace drawable {
         void refresh();
     };
 
+    /*!
+     * Drawable bullet which can  be draw
+     * using the draw function.
+     */
     class Bullet : public DrawableObject {
     public:
         Bullet(WINDOW *parent_window, int begin_height, int begin_width, int width = 2, int height = 2);

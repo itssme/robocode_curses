@@ -7,9 +7,17 @@
 */
 #include "client.h"
 
+/*!
+ * Respond to an update request by the server
+ * @param context Server context
+ * @param msg message that has been sent by the server
+ * @param response that has to be filled in by the client
+ * @return a grpc status code
+ */
 Status ClientImpl::GetUpdate(grpc::ServerContext *context, const shared::UpdateFromServer *msg,
                                shared::UpdateFromClient *response) {
-    spdlog::info("send {}", msg->DebugString());
+    spdlog::info("got {}", msg->DebugString());
+    spdlog::info("update from {}", context->peer());
 
     this->player.robot.pos_height = msg->pos().y();
     this->player.robot.pos_width = msg->pos().x();

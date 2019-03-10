@@ -20,6 +20,10 @@
 
 namespace GameObjects {
 
+    /*!
+     * Basic game object that can be used to
+     * calculate positions, movements etc.
+     */
     class GameObject {
     public:
         double pos_height;
@@ -40,6 +44,10 @@ namespace GameObjects {
         virtual void tick()= 0;
     };
 
+    /*!
+     * Bullet object that can be used
+     * calculate position, movement etc.
+     */
     class Bullet : public GameObject {
     public:
         drawable::Bullet drawable_bullet;
@@ -50,6 +58,10 @@ namespace GameObjects {
         Bullet(WINDOW *parent_window, double pos_height, double pos_width, double speed_height, double speed_width, int created_by = -1);
     };
 
+    /*!
+     * Basic Robot that has all attributes
+     * used to calculate position, movement etc.
+     */
     class BasicRobot : public GameObject {
     public:
         double gun_degree;
@@ -67,7 +79,9 @@ namespace GameObjects {
                    int energy, double gun_rotation, int width = 4, int height = 7, int id = -1);
     };
 
-    // extend BasicRobot and make it drawable
+    /*!
+     * Extends BasicRobot and makes it drawable
+     */
     class Robot : public BasicRobot {
     public:
         void draw();

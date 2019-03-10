@@ -90,7 +90,7 @@
 Robocode is a multiplayer game in which players don't directly compete against their opponents but instead they have to program a robot which fights for them. The goal is to program a robot that can defeat all opponents and survive until the end of the game.
 
 \subsubsection{Robots}
-Each robot has a starting energy of 100\%. In order to shoot a bullet at an enemy the robot has a gun that can be rotated 360° degrees. The gun also acts as a scanner. If a robot intersects with the range of the gun the program of the player will receive the position and energy of the scanned robot. What the player chooses to do with that information is completely up to him. He could for example, shoot at the player or store his position in a vector and try to predict his speed/ position using the last points as reference.
+Each robot has a starting energy of 100\%. In order to shoot a bullet at an enemy the robot has a gun that can be rotated 360° degrees. The gun also acts as a scanner. If a robot intersects with the range of the gun the program of the player will receive the position and energy of the scanned robot. What the player chooses to do with that information is entirely up to him. He could for example, shoot at the player or store his position in a vector and try to predict his speed/ position using the last points as reference.
 
 \section{Technologies}
 
@@ -164,7 +164,7 @@ In order to display the game the C-Library ''Ncurses'' is used. The robots are r
 In the following section the software architecture of the program will be described. The program consists of five different parts namely: the curses drawable objects, the game objects, the game server and game client, the streaming server and streaming client and the players program.
 
 \subsection{Drawable Objects}
-There are only two different drawable game objects, the ''Bullet'' and ''Robot''. The can be directly drawn to the terminal by calling the ''draw()'' function.
+There are only two different drawable game objects, the ''Bullet'' and ''Robot''. They can be directly drawn to the terminal by calling their ''draw()'' function.
 
 \begin{figure}[h]
 \centering
@@ -174,7 +174,7 @@ There are only two different drawable game objects, the ''Bullet'' and ''Robot''
 \end{figure}
 
 \subsection{Game Objects}
-The game objects are being used by the game server to calculate the path of bullets, robots etc. and send the data back to the players. The clas''Robot'' and ''Bullet'' each contain a corresponding drawable object and can be rendered by calling the ''draw()'' function. All game objects inherit their base functionality from the class ''GameObject''. It contains the position, width, height and speed of the object. It also implements a ''tick()'' function which applies the current speed updates the position.
+The game objects are being used by the game server to calculate the path of bullets, robots etc. and send the data back to the players. The class''Robot'' and ''Bullet'' each contain a corresponding drawable object and can be rendered by calling the ''draw()'' function. All game objects inherit their base functionality from the class ''GameObject''. It contains the position, width, height and speed of the object. It also implements a ''tick()'' function, which applies the current speed to the position.
 
 \begin{figure}[h]
 \centering
@@ -188,7 +188,7 @@ The game objects are being used by the game server to calculate the path of bull
 \subsection{Game Server and Client}
 
 \subsubsection{Server}
-The gameserver consists of two different classes, first the actual game which calculates movements of objects, renders the them and finally sends an update via the server using grpc. The game server also prepares the data for the streaming server, which sends the all positions via asio to the player in order for them to see the whole game. The most important part of the gameserver is the ''game\_loop()'' function which covers all the functionalities that are described above.
+The gameserver consists of two different classes, first the actual game which calculates movements of objects, renders the them and finally sends an update via the server using grpc. The gameserver also prepares the data for the streaming server, which sends the all positions via asio to the player in order for them to see the whole game. The most important part of the gameserver is the ''game\_loop()'' function which covers all the functionalities that are described above.
 
 \begin{figure}[h]
 \centering
@@ -222,7 +222,6 @@ The streaming server and client are automatically started when hosting or connec
 \section{Usage}
 
 \subsection{Building the game}
-
 The game can be build using either Meson or Cmake.
 
 \subsubsection{Meson}
@@ -258,21 +257,25 @@ For writing an own robot simply go to the file ''player.h'' and overwrite the ex
 \captionof{lstlisting}{Player.h}
 \normalsize
 
-Listing 3 is a simple wall bot example. The player robot circles around the walls while rotating his gun and shooting every time he scanned a robot. The program first searches for the lower wall and from there on travels clockwise near to the them.
+Listing 3 is a simple wall bot example. The player robot circles around the walls while rotating his gun and shooting every time he scanned a robot. The program first searches for the lower wall and from there on travels clockwise next to the them.
 
 \subsection{Hosting a game}
-The game can be hosted by simply calling the built program via \lstinline{./robocode}. Then navigating the menu to ''Host a new game'' and ''Start getting connections'' using the arrow keys and the enter button. Then wait until at least two players have connected to the game and press enter on one of their names. \\
+The game can be hosted by simply calling the built program via \lstinline{./robocode}. Then navigating to the menu ''Host a new game'' and ''Start getting connections'', using the arrow keys and the enter button. Then wait until at least two players have connected to the game and press enter on one of their names. \\
 
 The game can also be hosted using the command \lstinline{./robocode -nmh}. ''-nhm'' stands for ''no-menu-host'' and means that the server will be started immediately and no menu will be displayed. \\
 
 The ''-nhm'' option can also be set in the ''config.json'' file.
 
 \subsection{Connecting to a game}
-Again the player can simply use the menu to connect to a game. Call \lstinline{./robocode} again and navigate to ''Connect to a game''. Then type in an IP address in the ''Connect to'' field and press enter. The next window will open and requires a ''username'' to be typed in. \\
+Again the player can simply use the menu to connect to a game. Call \lstinline{./robocode} again and navigate to ''Connect to a game''. Then type in an IP address in the ''Connect to'' field and press enter. The next window will open and requires a ''username'' to be typed in. When the connection is established the game server send the size of the game window. The terminal then has to be resized to match that width and height. \\
 
 A connection can also be established using the command \lstinline{./robocode -c 127.0.0.1 username}. \\
 
 Again this command can also be set in the configuration file by filling in the ''server\_ip'' and ''username'' parameter.
+
+\section{Additional Documentation}
+
+More documentation can be found at ''docs/doxygen''. The Doxygen documentation can be used by running the command ''doxygen robocode'' in the folder. This will automatically generate a documentation which can be viewed in the browser.
 
 \end{document}
 

@@ -55,7 +55,7 @@ void server() {
     spdlog::info("in server");
     std::string server_address("0.0.0.0:" + std::to_string(port));
 
-    StreamingServer streaming_server(streaming_port);
+    StreamingServer streaming_server(streaming_port, LINES, COLS);
     Game game(main_window, server_address);
 
     VariableMenu display_conns(main_window, std::vector<std::string>{"End"}, 0, " Press enter to start game ");

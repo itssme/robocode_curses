@@ -10,11 +10,24 @@
 #include <cmath>
 #include <string>
 
+/*!
+ * Move a drawable object
+ * @param pos_height new position in y
+ * @param pos_width new position in x
+ */
 void drawable::DrawableObject::move(int pos_height, int pos_width) {
     this->pos_height = pos_height;
     this->pos_width = pos_width;
 }
 
+/*!
+ * Create a new robot
+ * @param parent_window the robot will be drawn on
+ * @param begin_height y position of the robot
+ * @param begin_width x position of the robot
+ * @param height of the robot
+ * @param width of the robot
+ */
 drawable::Robot::Robot(WINDOW *parent_window, int begin_height, int begin_width, int height, int width) : DrawableObject() {
     this->pos_width = begin_width;
     this->pos_height = begin_height;
@@ -28,10 +41,17 @@ drawable::Robot::Robot(WINDOW *parent_window, int begin_height, int begin_width,
     box(this->window, 0, 0);
 }
 
+/*!
+ * Set the nwe gun rotation
+ * @param new_rotation in degrees
+ */
 void drawable::Robot::set_gun_rotation(float new_rotation) {
     this->gun_rotation = new_rotation;
 }
 
+/*!
+ * Draw the gun
+ */
 void drawable::Robot::draw_gun() {
     auto X = (this->height/1.25) * std::cos(((this->gun_rotation)*M_PI)/180);
     auto Y = (this->height/1.25) * std::sin(((this->gun_rotation)*M_PI)/180);
@@ -57,6 +77,9 @@ void drawable::Robot::draw_gun() {
     wrefresh(this->parent_window);
 }
 
+/*!
+ * Draw all components of the robot
+ */
 void drawable::Robot::draw() {
     werase(this->window);
     this->refresh();
@@ -66,11 +89,22 @@ void drawable::Robot::draw() {
     this->refresh();
 }
 
+/*!
+ * Refresh the subwindow of the robot
+ */
 void drawable::Robot::refresh() {
     touchwin(this->window);
     wrefresh(this->window);
 }
 
+/*!
+ * Create a new bullet robot
+ * @param parent_window parent_window the bullet will be drawn on
+ * @param begin_height y position of the bullet
+ * @param begin_width x position of the bullet
+ * @param width of the bullet
+ * @param height of the bullet
+ */
 drawable::Bullet::Bullet(WINDOW *parent_window, int begin_height, int begin_width, int width, int height) {
     this->pos_width = begin_width;
     this->pos_height = begin_height;
@@ -82,6 +116,9 @@ drawable::Bullet::Bullet(WINDOW *parent_window, int begin_height, int begin_widt
     this->refresh();
 }
 
+/*!
+ * Draw the bullet
+ */
 void drawable::Bullet::draw() {
     werase(this->window);
     this->refresh();
@@ -90,6 +127,9 @@ void drawable::Bullet::draw() {
     this->refresh();
 }
 
+/*!
+ * Refresh the subwindow of the bullet
+ */
 void drawable::Bullet::refresh() {
     touchwin(this->window);
     wrefresh(this->window);

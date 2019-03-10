@@ -2,7 +2,7 @@ title Game Stream
 
 Client->Server:start streaming
 
-Server->Client:confirm start
+Server->Client:WindowSize.proto
 
 loop
 Server->Client:StreamingUpdate.proto

@@ -8,16 +8,30 @@
 
 #include "streaming/streaming_server.h"
 
-StreamingServer::StreamingServer(int port) {
-    this-> asio_thread = std::thread(&StreamingServer::start_streaming_server, this, port);
+/*!
+ * Start listening for stream connections
+ * @param port the server will use
+ * @param height of the game window
+ * @param width of the gme window
+ */
+StreamingServer::StreamingServer(int port, int height, int width) {
+    this-> asio_thread = std::thread(&StreamingServer::start_streaming_server, this, port, height, width);
 }
 
+/*!
+ * Stop listening and join server thread
+ */
 StreamingServer::~StreamingServer() {
     this->acceptor->cancel();
     this->acceptor->close();
     this->asio_thread.join();
 }
 
+/*!
+ * Send scores to all connections
+ * and close them afterwards
+ * @param scores of the game
+ */
 void StreamingServer::close_connections(shared::GameScores scores) {
     this->stop = true;
 
@@ -30,7 +44,14 @@ void StreamingServer::close_connections(shared::GameScores scores) {
     }
 }
 
-void StreamingServer::start_streaming_server(short unsigned int port) {
+/*!
+ * Continuously send new positions
+ * to the clients.
+ * @param port the server will use
+ * @param height of the game window
+ * @param width of the gme window
+ */
+void StreamingServer::start_streaming_server(short unsigned int port, int height, int width) {
     asio::io_context ioContext;
     tcp::endpoint endpoint{tcp::v4(), port};
     this->acceptor = new tcp::acceptor{ioContext, endpoint};
@@ -55,13 +76,20 @@ void StreamingServer::start_streaming_server(short unsigned int port) {
             shared::StartStreaming start;
             asio_utils::get_proto_msg(this->sockets.at(socket_index), start);
 
-            asio_utils::send_proto(this->sockets.at(socket_index), start);
+            shared::WindowSize w_size;
+            w_size.set_height(height);
+            w_size.set_width(width);
+            asio_utils::send_proto(this->sockets.at(socket_index), w_size);
         } else {
             spdlog::info("Received an unexpected message during accept");
         }
     }
 }
 
+/*!
+ * Send a update message to all clients.
+ * @param update message that will be sent
+ */
 void StreamingServer::send_to_all(shared::StreamingUpdate update) {
     for (auto &socket: this->sockets) {
         try {

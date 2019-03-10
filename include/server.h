@@ -47,6 +47,11 @@ public:
         this->username = name;
         this->peer = peer;
     }
+    /*!
+     * Send a message to the client
+     * @param message that will be sent
+     * @return a grpc status code
+     */
     shared::UpdateFromClient send_message(shared::UpdateFromServer message) {
         shared::UpdateFromClient reply;
         grpc::ClientContext context;
@@ -63,6 +68,10 @@ public:
             return err;
         }
     }
+    /*!
+     * Sends a test message to the client
+     * @return a grpc status code
+     */
     shared::UpdateFromClient sanity_check() {
         std::cout << "in check" << std::endl;
         shared::UpdateFromServer update;

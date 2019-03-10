@@ -42,19 +42,33 @@ namespace asio_utils {
         return static_cast<u_int8_t>(static_cast<std::underlying_type_t<E>>(e));
     }
 
+    /*!
+     * Match message type to and id
+     */
     enum class MessageType {
         StreamingUpdate = 1,
         StartStreaming = 2,
         GameScores = 3,
-        End = 3
+        WindowSize = 4,
+        End = 5
     };
 
+    /*!
+     * Gets message type by comparing to the MessageType enum
+     */
     const std::unordered_map<std::type_index, MessageType> typeMapping{
         {typeid(shared::StreamingUpdate), MessageType::StreamingUpdate},
         {typeid(shared::StartStreaming), MessageType::StartStreaming},
         {typeid(shared::GameScores), MessageType::GameScores},
+        {typeid(shared::WindowSize), MessageType::WindowSize},
         {typeid(shared::Empty), MessageType::End}};
 
+    /*!
+     * Send a proto message over a socket
+     * @param socket the message will be sent over
+     * @param message that will be sent
+     * @return a status code
+     */
     inline int send_proto(tcp::socket &socket, google::protobuf::Message &message) {
         u_int8_t messageType{toUnderlying(typeMapping.at(typeid(message)))};
         u_int64_t messageSize{static_cast<u_int64_t>(message.ByteSize())};
@@ -69,21 +83,33 @@ namespace asio_utils {
         return SEND_OK;
     }
 
-    inline int get_proto_type(tcp::socket &socket, MessageType &messageType) {
+    /*!
+     * Get type of proto message that will be received next
+     * @param socket the message will be received from
+     * @param messageType reference the type will be stored in
+     * @return a status code
+     */
+    inline int get_proto_type(tcp::socket &socket, MessageType &message_type) {
         u_int8_t messageTypeRaw;
 
         socket.receive(buffer(&messageTypeRaw, sizeof(messageTypeRaw)), 0);
-        messageType = static_cast<MessageType>(messageTypeRaw);
+        message_type = static_cast<MessageType>(messageTypeRaw);
 
         return SEND_OK;
     }
 
+    /*!
+     * Get a proto message from the socket
+     * @param socket socket the message will be received from
+     * @param message reference the message will be stored in
+     * @return a status code
+     */
     inline int get_proto_msg(tcp::socket &socket, google::protobuf::Message &message) {
-        u_int64_t messageSize;
-        socket.receive(buffer(&messageSize, sizeof(messageSize)), 0);
+        u_int64_t message_size;
+        socket.receive(buffer(&message_size, sizeof(message_size)), 0);
 
         streambuf streamBuffer;
-        streambuf::mutable_buffers_type mutableBuffer{streamBuffer.prepare(messageSize)};
+        streambuf::mutable_buffers_type mutableBuffer{streamBuffer.prepare(message_size)};
 
         streamBuffer.commit(read(socket, mutableBuffer));
 
