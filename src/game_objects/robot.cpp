@@ -30,7 +30,8 @@ void GameObjects::BasicRobot::tick() {
 }
 
 bool GameObjects::BasicRobot::check_collision(BasicRobot robot) {
-    return false;
+    return (this->pos_width - 1 < robot.pos_width + robot.width && this->pos_width + this->width + 1 > robot.pos_width &&
+            this->pos_height - 1 < robot.pos_height + robot.height && this->pos_height + this->height + 1 > robot.pos_height );
 }
 
 GameObjects::Bullet GameObjects::BasicRobot::shoot(WINDOW* parent_window) {

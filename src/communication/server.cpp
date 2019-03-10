@@ -8,13 +8,29 @@
 #include "server.h"
 
 Status ServerImpl::RegisterClient(grpc::ServerContext *context, const shared::Register *msg, shared::PlayerId *response) {
-    //std::cout << "got message: " << msg->name() << std::endl;
-    //std::cout << "peer: " << context->peer() << std::endl;
-    //std::cout << "peer has sent port: " << msg->port() << std::endl;
+    std::string ip = context->peer();
+    std::string token = ":";
 
-    std::string ip = "localhost"; // TODO: extract from context->peer();
+    std::vector<std::string>result;
+    while(!ip.empty()){
+        long unsigned int index = static_cast<int>(ip.find(token));
 
-    //std::cout << ip + ":" + std::to_string(msg->port()) << std::endl;
+        if(index != std::string::npos) {
+            result.push_back(ip.substr(0, static_cast<unsigned long>(index)));
+            ip = ip.substr(index+token.size());
+
+            if(ip.empty()) {
+                result.push_back(ip);
+            }
+        }else{
+            result.push_back(ip);
+            ip = "";
+        }
+    }
+
+    spdlog::info("got connection from: {}", result.at(result.size()-2));
+
+    ip = result.at(result.size()-2);
     std::string connect_str = ip + ":" + std::to_string(msg->port());
     this->connections.push_back(new Connection(grpc::CreateChannel(connect_str, grpc::InsecureChannelCredentials()),
                                                id, msg->name(), connect_str));

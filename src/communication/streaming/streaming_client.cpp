@@ -20,29 +20,42 @@ void StreamingClient::start_streaming_client(WINDOW* game_window, std::string se
     auto results = resolver.resolve(server_address, std::to_string(port));
     tcp::socket socket{io_context};
 
-    spdlog::info("before stream connect: {} port: {}", server_address, port);
-    asio::connect(socket, results);
+    try {
+        spdlog::info("before stream connect: {} port: {}", server_address, port);
+        asio::connect(socket, results);
 
-    shared::StartStreaming start_strm;
-    start_strm.set_start(true);
-    asio_utils::send_proto(socket, start_strm);
+        shared::StartStreaming start_strm;
+        start_strm.set_start(true);
+        asio_utils::send_proto(socket, start_strm);
 
-    {
-        asio_utils::MessageType messageType;
-        asio_utils::get_proto_type(socket, messageType);
+        {
+            asio_utils::MessageType messageType;
+            asio_utils::get_proto_type(socket, messageType);
 
-        if (messageType == asio_utils::MessageType::StartStreaming) {
-            shared::StartStreaming start;
-            asio_utils::get_proto_msg(socket, start);
-            spdlog::info("got start message for streaming");
-        } else {
-            spdlog::info("Did not receive correct start streaming message");
+            if (messageType == asio_utils::MessageType::StartStreaming) {
+                shared::StartStreaming start;
+                asio_utils::get_proto_msg(socket, start);
+                spdlog::info("got start message for streaming");
+            } else {
+                spdlog::info("Did not receive correct start streaming message");
+            }
         }
+    } catch (const std::exception &exc) {
+        spdlog::critical("critical error while receiving start message {}", exc.what());
+        this->stop = true;
     }
 
     while (! this->stop) {
         asio_utils::MessageType messageType;
-        asio_utils::get_proto_type(socket, messageType);
+
+        try {
+            asio_utils::get_proto_type(socket, messageType);
+        } catch (const std::exception &exc) {
+            spdlog::critical("critical error when receiving stream message {}", exc.what());
+            this->stop = true;
+            continue;
+        }
+
         spdlog::info("got a new message");
 
         if (messageType == asio_utils::MessageType::StreamingUpdate) {

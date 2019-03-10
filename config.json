@@ -1,5 +1,6 @@
 {
   "port" : 5000,
+  "streaming_port": 5010,
   "username" : "",
   "server_ip" : "",
   "background_robot": true,

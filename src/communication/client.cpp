@@ -9,14 +9,14 @@
 
 Status ClientImpl::GetUpdate(grpc::ServerContext *context, const shared::UpdateFromServer *msg,
                                shared::UpdateFromClient *response) {
-    //std::cout << "GOT:\n" << msg->DebugString() << std::endl;
+    spdlog::info("send {}", msg->DebugString());
 
     this->player.robot.pos_height = msg->pos().y();
     this->player.robot.pos_width = msg->pos().x();
     this->player.robot.energy = msg->energy();
 
     if (this->player.robot.energy <= 0) {
-        std::cout << "dead" << std::endl;
+        spdlog::info("player has died");
     }
 
     GameObjects::BasicRobot* robot = nullptr;
@@ -39,7 +39,7 @@ Status ClientImpl::GetUpdate(grpc::ServerContext *context, const shared::UpdateF
     response->mutable_gun_pos()->set_degrees(this->player.robot.gun_degree);
     response->mutable_gun_pos()->set_speed(this->player.robot.gun_speed);
 
-    //std::cout << "\nSENT:\n" << response->DebugString() << std::endl;
+    spdlog::info("send {}", response->DebugString());
 
     return Status::OK;
 }

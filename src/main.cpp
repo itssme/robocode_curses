@@ -41,6 +41,7 @@ thread* t;
 mutex draw_mutex;
 
 int port{5000};
+int streaming_port{5010};
 bool dont_display_background_robot{false};
 
 void shutdown() {
@@ -52,12 +53,12 @@ void shutdown() {
 
 void server() {
     spdlog::info("in server");
-    std::string server_address("0.0.0.0:" + std::to_string(port)); // TODO: read port from config json file
+    std::string server_address("0.0.0.0:" + std::to_string(port));
 
-    StreamingServer streaming_server(5010);  // TODO: read port from config
+    StreamingServer streaming_server(streaming_port);
     Game game(main_window, server_address);
 
-    VariableMenu display_conns(main_window, std::vector<std::string>{"Back .."}, 0, " Press enter to start game ");
+    VariableMenu display_conns(main_window, std::vector<std::string>{"End"}, 0, " Press enter to start game ");
     display_conns.refresh_all();
 
     bool start_game{false};
@@ -81,7 +82,7 @@ void server() {
             connected_peers += 1;
         }
         draw_mutex.unlock();
-        this_thread::sleep_for(chrono::milliseconds(10)); // TODO: change to a queue and notify instead of polling
+        this_thread::sleep_for(chrono::milliseconds(10));
     }
     user_inp.join();
 
@@ -91,7 +92,7 @@ void server() {
         display_conns.erase();
         display_conns.refresh_all();
         draw_mutex.unlock();
-        return;
+        shutdown();
     }
 
     running = false;
@@ -158,27 +159,33 @@ void client(const std::string &username, const std::string &server_ip) {
         server->Wait();
     });
 
-    Advertise ad(grpc::CreateChannel(server_ip + ":" + std::to_string(port), grpc::InsecureChannelCredentials())); // TODO: read port from config json
+    Advertise ad(grpc::CreateChannel(server_ip + ":" + std::to_string(port), grpc::InsecureChannelCredentials()));
     int id = ad.Register(username, selected_port);
-    spdlog::info("got id form server: {}", id);
-
-    StreamingClient streaming_client(main_window, server_ip, 5010); // TODO: read port from config
-
-    while (! streaming_client.stop) {
-        this_thread::sleep_for(chrono::milliseconds(1));
-    }
-
-    werase(main_window);
-    box(main_window, 0 , 0);
-    wrefresh(main_window);
-
-    auto results = streaming_client.scores;
-    endwin();
+    spdlog::info("got id from server: {}", id);
 
     std::vector<std::string> scores;
 
-    for (const auto &result: results.scores()) {
-        scores.push_back(result);
+    if (id != -1) {
+        StreamingClient streaming_client(main_window, server_ip, streaming_port);
+
+        while (!streaming_client.stop) {
+            this_thread::sleep_for(chrono::milliseconds(1));
+        }
+
+        werase(main_window);
+        box(main_window, 0, 0);
+        wrefresh(main_window);
+
+        auto results = streaming_client.scores;
+
+        for (const auto &result: results.scores()) {
+            scores.push_back(result);
+        }
+    }
+
+    if (scores.empty()) {
+        scores.emplace_back("critical error in streaming connection");
+        scores.emplace_back("PRESS ENTER TO CONTINUE");
     }
 
     Menu show_results(main_window, scores, 0, " Game Scores ");
@@ -323,6 +330,7 @@ int main(int argc, char *argv[]) {
 
     if (read_config) {
         port = config["port"];
+        streaming_port = config["streaming_port"];
         username = config["username"];
         server_ip = config["server_ip"];
         dont_display_background_robot = ! config["background_robot"];
@@ -336,6 +344,7 @@ int main(int argc, char *argv[]) {
     auto cli = (option("-h", "--help").set(help).doc("show this help"),
             option("-b").set(dont_display_background_robot).doc("if set background robot will not be displayed"),
             option("-p", "--port").set(port_set).doc("set port for the server") & value("port", port),
+            option("-sp", "--streaming_port").set(port_set).doc("set streaming port for the server") & value("streaming_port", streaming_port),
             option("-nmh", "--no-menu-host").set(no_menu_host).doc("don't display menu and host game"),
             option("-c", "--connect").set(connect).doc("connect directly to a game without menu") &
             value("ip", server_ip) & value("username", username));

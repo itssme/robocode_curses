@@ -12,7 +12,9 @@
 #include <memory>
 #include <string>
 #include <vector>
-#include <future>
+#include <istream>
+#include <sstream>
+#include <fstream>
 #include <grpcpp/grpcpp.h>
 #include <messages.pb.h>
 #include <messages.grpc.pb.h>

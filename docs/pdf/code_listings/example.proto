@@ -1,0 +1,10 @@
+message Position {
+    double y = 1;
+    double x = 2;
+}
+
+message Robot {
+    int32 id = 1;
+    double energy_left = 2;
+    Position pos = 3;
+}

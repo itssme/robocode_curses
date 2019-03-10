@@ -91,17 +91,30 @@ void Game::tick_modify(int tick_modifier) {
 }
 
 void Game::tick_all() {
-    std::vector<std::future<shared::UpdateFromClient>> updates;
     std::vector<std::tuple<unsigned long int, shared::UpdateFromClient>> messages;
 
-    //messages.resize(robots.size());
-    updates.resize(robots.size());
     for (unsigned int i = 0; i < this->robots.size(); i++) {
         if (robots.at(i).energy <= 0) {
             continue;
         }
 
+        for (auto &robot: this->robots) {
+            if (this->robots.at(i).id != robot.id && this->robots.at(i).check_collision(robot)) {
+                this->robots.at(i).set_speed(0.0, 0.0);
+            }
+        }
+
         robots.at(i).tick();
+
+        for (auto &robot: this->robots) {
+            if (this->robots.at(i).id != robot.id && this->robots.at(i).check_collision(robot)) {
+                // revert last tick
+                this->robots.at(i).pos_height -= this->robots.at(i).speed_height;
+                this->robots.at(i).pos_width -= this->robots.at(i).speed_width;
+
+                this->robots.at(i).set_speed(0.0, 0.0);
+            }
+        }
 
         // Wall collision
         std::vector<int> hit_wall;
@@ -116,8 +129,6 @@ void Game::tick_all() {
         } else if (robots.at(i).pos_width <= 1) {
             hit_wall.push_back(1);
         }
-
-        // TODO: also check for robot collision
 
         // Bullet collision
         std::vector<GameObjects::Bullet> survived_bullets;
@@ -190,10 +201,6 @@ void Game::tick_all() {
                 update.mutable_scanned_robot()->set_energy_left(robot_scan.energy);
             }
         }
-
-        //updates.push_back(std::async(std::launch::async, ([&]{
-        //    return this->service.connections.at(i)->send_message(update);
-        //})));
 
         messages.emplace_back(i, this->service.connections.at(this->get_connection_from_robot(robots.at(i).id))->send_message(update));
     }
@@ -269,12 +276,30 @@ void Game::start() {
     std::uniform_real_distribution<double> dis_x{5, (double) COLS - 5};
 
     for (unsigned int i = 0; i < this->service.connections.size(); i++) {
-        drawable::Robot robot_draw(this->window,
-                                   static_cast<int>(dis_y(gen)),
-                                   static_cast<int>(dis_x(gen)));
-        GameObjects::Robot robot(this->window, robot_draw, this->service.connections.at(i)->id);
-        robot.energy = 20;
-        this->robots.push_back(robot);
+        bool intersects{false};
+
+        // loop until the created robot does not intersect with another robot
+        do {
+            intersects = false;
+
+            drawable::Robot robot_draw(this->window,
+                                       static_cast<int>(dis_y(gen)),
+                                       static_cast<int>(dis_x(gen)));
+
+            GameObjects::Robot robot(this->window, robot_draw, this->service.connections.at(i)->id);
+
+            for (auto &collision_robot: this->robots) {
+                if (robot.id != collision_robot.id && robot.check_collision(collision_robot)) {
+                    intersects = true;
+                }
+            }
+
+            if (! intersects) {
+                robot.energy = 100;
+                this->robots.push_back(robot);
+            }
+
+        } while (intersects);
     }
 }
 

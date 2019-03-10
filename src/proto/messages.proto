@@ -88,7 +88,3 @@ service GameServer {
 service Client {
     rpc GetUpdate(UpdateFromServer) returns (UpdateFromClient);
 }
-
-service StreamingServer {
-    rpc RegisterClient(Empty) returns (Empty);
-}

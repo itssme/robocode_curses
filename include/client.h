@@ -40,7 +40,7 @@ public:
         if (status.ok()) {
             return reply.id();
         } else {
-            std::cout << status.error_code() << ": " << status.error_message() << std::endl;
+            spdlog::critical("Error code: {} -> {}", status.error_code(), status.error_message());
             return -1;
         }
     }

@@ -1,0 +1,11 @@
+title Game Stream
+
+Client->Server:start streaming
+
+Server->Client:confirm start
+
+loop
+Server->Client:StreamingUpdate.proto
+end
+
+Server->Client:GameScores.proto
