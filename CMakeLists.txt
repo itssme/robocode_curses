@@ -316,23 +316,10 @@ include_directories(${PROTOBUF_INCLUDE_DIRS})
 include_directories(${GRPC_INCLUDE_DIRS})
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
-# SPDLOG
-include_directories("/home/joel/Documents/school/nvs_5te_klasse/inclue_libs/spdlog/include")
-
-# JSON
-include_directories("/home/joel/Documents/school/nvs_5te_klasse/inclue_libs/json")
-
-# CLIPP
-include_directories("/home/joel/Documents/school/nvs_5te_klasse/inclue_libs/clipp/include")
-
-# ASIO
-include_directories("/home/joel/Documents/school/nvs_5te_klasse/inclue_libs/asio/asio/include")
-
-# TODO: set env variables
-#include_directories($ENV{ASIO_INCLUDE_PATH})
-#include_directories($ENV{SPDLOG_INCLUDE_PATH})
-#include_directories($ENV{CLIPP_INCLUDE_PATH})
-#include_directories($ENV{JSON_INCLUDE_PATH})
+include_directories($ENV{ASIO_INCLUDE_PATH})
+include_directories($ENV{SPDLOG_INCLUDE_PATH})
+include_directories($ENV{CLIPP_INCLUDE_PATH})
+include_directories($ENV{JSON_INCLUDE_PATH})
 
 file(GLOB protos src/proto/*.proto)
 protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ${protos})
